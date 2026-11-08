@@ -1,0 +1,15 @@
+{
+  "name": "Taipei MRT Stamps",
+  "short_name": "MRT Stamps",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#173b66",
+  "icons": [
+    {
+      "src": "IMG_3002.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
