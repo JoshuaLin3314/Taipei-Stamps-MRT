@@ -200,16 +200,17 @@ async function save() {
 
 $("signInBtn").addEventListener("click", async () => {
   const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
 
   $("syncStatus").textContent = "Opening Google sign-in…";
 
   try {
     await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-    await auth.signInWithPopup(provider);
+    await auth.signInWithRedirect(provider);
   } catch (error) {
     $("syncStatus").textContent =
       "Sign-in error: " + error.code + " — " + error.message;
-
+    console.error(error);
     alert(error.code + ": " + error.message);
   }
 });
