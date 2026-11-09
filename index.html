@@ -232,7 +232,14 @@ auth.onAuthStateChanged(async user => {
   const ref = db.collection("users").doc(user.uid);
 
   try {
-    const snapshot = await ref.get({ source: "server" });
+    $("syncStatus").textContent = "Testing Firestore connection…";
+
+const snapshot = await Promise.race([
+  ref.get({ source: "server" }),
+  new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Firestore timed out after 15 seconds")), 15000)
+  )
+]);
 
     if (!snapshot.exists) {
       const stations = {};
