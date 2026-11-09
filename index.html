@@ -71,7 +71,7 @@ const firebaseConfig = {
   projectId: "taipei-mrt-stamps",
   storageBucket: "taipei-mrt-stamps.firebasestorage.app",
   messagingSenderId: "220849883011",
-  appId: "1:220849883011:web:c161dccb778b3b98b1d8b6"
+  appId: "1:220849883011:web:c161dccb778b3b98d8b6"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -170,7 +170,7 @@ let cloudReady = false;
 let applyingCloud = false;
 let unsubscribeCloud = null;
 
-function save() {
+async function save() {
   const data = allStations().map(s => ({
     code: s.code,
     collected: s.collected
@@ -181,31 +181,50 @@ function save() {
   if (!auth.currentUser || !cloudReady || applyingCloud) return;
 
   const stations = {};
-  data.forEach(s => stations[s.code] = s.collected);
-
-  db.collection("users").doc(auth.currentUser.uid).set({
-    stations,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true }).catch(error => {
-    $("syncStatus").textContent = "Sync error: " + error.message;
+  data.forEach(s => {
+    stations[s.code] = s.collected;
   });
+
+  try {
+    await db.collection("users").doc(auth.currentUser.uid).set({
+      stations,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    $("syncStatus").textContent = "☁️ Synced";
+  } catch (error) {
+    $("syncStatus").textContent =
+      "Sync error: " + error.code + " — " + error.message;
+  }
 }
 
-$("signInBtn").addEventListener("click", () => {
+$("signInBtn").addEventListener("click", async () => {
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithRedirect(provider).catch(error => {
-  $("syncStatus").textContent =
-    "Sign-in error: " + error.code + " — " + error.message;
-});
+
+  $("syncStatus").textContent = "Opening Google sign-in…";
+
+  try {
+    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    await auth.signInWithPopup(provider);
+  } catch (error) {
+    $("syncStatus").textContent =
+      "Sign-in error: " + error.code + " — " + error.message;
+
+    alert(error.code + ": " + error.message);
+  }
 });
 
 auth.onAuthStateChanged(async user => {
   cloudReady = false;
 
-  if (unsubscribeCloud) unsubscribeCloud();
+  if (unsubscribeCloud) {
+    unsubscribeCloud();
+    unsubscribeCloud = null;
+  }
 
   if (!user) {
     $("syncStatus").textContent = "Not signed in";
+    $("signInBtn").textContent = "Sign in with Google";
     $("signInBtn").disabled = false;
     return;
   }
@@ -221,7 +240,10 @@ auth.onAuthStateChanged(async user => {
 
     if (!snapshot.exists) {
       const stations = {};
-      allStations().forEach(s => stations[s.code] = s.collected);
+
+      allStations().forEach(s => {
+        stations[s.code] = s.collected;
+      });
 
       await ref.set({
         stations,
@@ -229,6 +251,7 @@ auth.onAuthStateChanged(async user => {
       });
     } else {
       const saved = snapshot.data().stations || {};
+
       applyingCloud = true;
 
       allStations().forEach(s => {
@@ -246,6 +269,7 @@ auth.onAuthStateChanged(async user => {
 
       updateStats();
       render();
+
       applyingCloud = false;
     }
 
@@ -256,6 +280,7 @@ auth.onAuthStateChanged(async user => {
       if (!doc.exists || !cloudReady) return;
 
       const saved = doc.data().stations || {};
+
       applyingCloud = true;
 
       allStations().forEach(s => {
@@ -273,15 +298,18 @@ auth.onAuthStateChanged(async user => {
 
       updateStats();
       render();
+
       applyingCloud = false;
       $("syncStatus").textContent = "☁️ Synced";
     }, error => {
-      $("syncStatus").textContent = "Sync error: " + error.message;
+      $("syncStatus").textContent =
+        "Sync error: " + error.code + " — " + error.message;
     });
 
   } catch (error) {
     applyingCloud = false;
-    $("syncStatus").textContent = "Sync error: " + error.message;
+    $("syncStatus").textContent =
+      "Sync error: " + error.code + " — " + error.message;
   }
 });
 </script>
