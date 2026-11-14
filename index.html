@@ -36,14 +36,15 @@ header{
 h1{font-size:25px;margin:0 0 5px}
 .sub{opacity:.82;font-size:13px}
 main{max-width:760px;margin:0 auto;padding:16px}
-.summary{
+.summary,.line-stats,.map-card{
  background:var(--card);
  border:1px solid var(--line);
  border-radius:18px;
  padding:18px;
- margin-top:-4px;
+ margin:14px 0;
  box-shadow:0 4px 16px #17352f0c
 }
+.summary{margin-top:-4px}
 .stats{
  display:flex;
  justify-content:space-around;
@@ -80,17 +81,7 @@ main{max-width:760px;margin:0 auto;padding:16px}
  font-size:14px;
  color:var(--muted)
 }
-
-/* NEW: Line statistics styling */
-.line-stats{
- background:var(--card);
- border:1px solid var(--line);
- border-radius:18px;
- padding:18px;
- margin:14px 0;
- box-shadow:0 4px 16px #17352f08
-}
-.line-stats h2{
+.line-stats h2,.map-card h2{
  font-size:17px;
  margin:0 0 16px
 }
@@ -104,7 +95,6 @@ main{max-width:760px;margin:0 auto;padding:16px}
  font-size:13px;
  margin-bottom:6px
 }
-.line-stat-top strong{font-weight:700}
 .line-stat-count{
  color:var(--muted);
  font-variant-numeric:tabular-nums
@@ -127,7 +117,6 @@ main{max-width:760px;margin:0 auto;padding:16px}
  color:var(--muted);
  margin-top:4px
 }
-
 .controls{
  display:flex;
  gap:8px;
@@ -150,12 +139,59 @@ button{
  padding:11px 13px;
  border-radius:12px;
  font-weight:650;
- font-size:14px
+ font-size:14px;
+ cursor:pointer
 }
 button.active{
  background:#dceee5;
  border-color:#a8cdb9;
  color:#14573f
+}
+.map-button{
+ display:block;
+ width:100%;
+ background:#176b50;
+ color:white;
+ border:0;
+ padding:16px;
+ border-radius:14px;
+ font-size:16px;
+ font-weight:750;
+ margin:16px 0
+}
+.map-button:active{opacity:.85}
+.map-screen{display:none}
+.map-screen.visible{display:block}
+.main-screen.hidden{display:none}
+.map-top{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+ margin-bottom:14px
+}
+.map-top h2{
+ font-size:20px;
+ margin:0
+}
+.back-button{
+ background:#176b50;
+ color:white;
+ border:0;
+ white-space:nowrap
+}
+.map-image{
+ display:block;
+ width:100%;
+ height:auto;
+ border-radius:12px;
+ border:1px solid var(--line)
+}
+.map-note{
+ color:var(--muted);
+ font-size:13px;
+ line-height:1.5;
+ margin-top:12px
 }
 .section{
  background:var(--card);
@@ -194,12 +230,6 @@ button.active{
  font-weight:750;
  font-variant-numeric:tabular-nums
 }
-.extra{
- font-size:12px;
- color:var(--muted);
- display:block;
- margin-top:3px
-}
 .station.done .details{
  color:#718078;
  text-decoration:line-through
@@ -209,6 +239,11 @@ button.active{
  font-size:12px;
  text-align:center;
  padding:20px 8px 34px
+}
+#syncStatus{
+ font-size:12px;
+ color:var(--muted);
+ align-self:center
 }
 @media(min-width:650px){
  main{padding:22px}
@@ -231,6 +266,8 @@ button.active{
 
 <main>
 
+<div id="mainScreen" class="main-screen">
+
 <section class="summary" aria-live="polite">
  <div class="stats">
   <div>
@@ -250,11 +287,14 @@ button.active{
  <div class="progressline" id="progress">0 of 0 stamps collected</div>
 </section>
 
-<!-- NEW: Progress by MRT line -->
 <section class="line-stats">
  <h2>🚇 Progress by MRT Line</h2>
  <div id="lineStats"></div>
 </section>
+
+<button class="map-button" id="openMapBtn">
+ 🗺️ Taipei MRT Map
+</button>
 
 <div class="controls">
  <button id="signInBtn">Sign in with Google</button>
@@ -278,8 +318,28 @@ button.active{
 </div>
 
 <div class="footer">
- Progress is saved on this device in this browser.
- Keep this HTML file and reopen it in Safari to use your tracker.
+ Progress is saved on this device and synced to your Google account when signed in.
+</div>
+
+</div>
+
+<div id="mapScreen" class="map-screen">
+ <section class="map-card">
+  <div class="map-top">
+   <h2>🗺️ Taipei MRT Map</h2>
+   <button class="back-button" id="backBtn">← Back to Main Screen</button>
+  </div>
+
+  <img
+   class="map-image"
+   src="IMG_9049.jpeg"
+   alt="Taipei MRT system map"
+  >
+
+  <div class="map-note">
+   Taipei MRT route map. Use the Back to Main Screen button to return to your stamp collection.
+  </div>
+ </section>
 </div>
 
 </main>
@@ -305,33 +365,31 @@ const db = firebase.firestore();
 
 const original = [{"name":"Wenhu Line (Brown Line - BR)","stations":[{"code":"BR01","name":"Taipei Zoo","collected":true},{"code":"BR02","name":"Muzha","collected":false},{"code":"BR03","name":"Wanfang Community","collected":false},{"code":"BR04","name":"Wanfang Hospital","collected":false},{"code":"BR05","name":"Xinhai","collected":false},{"code":"BR06","name":"Linguang","collected":false},{"code":"BR07","name":"Liuzhangli","collected":false},{"code":"BR08","name":"Technology Building","collected":false},{"code":"BR09","name":"Daan (Transfer: R05)","collected":false},{"code":"BR10","name":"Zhongxiao Fuxing (Transfer: BL15)","collected":true},{"code":"BR11","name":"Nanjing Fuxing (Transfer: G16)","collected":true},{"code":"BR12","name":"Zhongshan Junior High School","collected":false},{"code":"BR13","name":"Songshan Airport","collected":true},{"code":"BR14","name":"Dazhi","collected":false},{"code":"BR15","name":"Jiannan Road","collected":true},{"code":"BR16","name":"Xihu","collected":false},{"code":"BR17","name":"Gangqian","collected":false},{"code":"BR18","name":"Wende","collected":false},{"code":"BR19","name":"Neihu","collected":false},{"code":"BR20","name":"Dahu Park","collected":true},{"code":"BR21","name":"Huzhou","collected":false},{"code":"BR22","name":"Donghu","collected":false},{"code":"BR23","name":"Nangang Software Park","collected":false},{"code":"BR24","name":"Taipei Nangang Exhibition Center (Transfer: BL23)","collected":true}]},{"name":"Tamsui-Xinyi Line (Red Line - R)","stations":[{"code":"R28","name":"Tamsui","collected":true},{"code":"R27","name":"Hongshulin","collected":true},{"code":"R26","name":"Zhuwei","collected":false},{"code":"R25","name":"Guandu","collected":true},{"code":"R24","name":"Zhongyi","collected":false},{"code":"R23","name":"Fuxinggang","collected":false},{"code":"R22","name":"Beitou (Transfer to Xinbeitou Branch)","collected":true},{"code":"R22A","name":"Xinbeitou (Branch line)","collected":false},{"code":"R21","name":"Qiyan","collected":false},{"code":"R20","name":"Qilian","collected":false},{"code":"R19","name":"Shipai","collected":false},{"code":"R18","name":"Mingde","collected":false},{"code":"R17","name":"Zhishan","collected":false},{"code":"R16","name":"Shilin","collected":false},{"code":"R15","name":"Jiantan","collected":true},{"code":"R14","name":"Yuanshan","collected":true},{"code":"R13","name":"Minquan West Road (Transfer: O11)","collected":false},{"code":"R12","name":"Shuanglian","collected":false},{"code":"R11","name":"Zhongshan (Transfer: G14)","collected":true},{"code":"R10","name":"Taipei Main Station (Transfer: BL12)","collected":true},{"code":"R09","name":"NTU Hospital","collected":false},{"code":"R08","name":"Chiang Kai-shek Memorial Hall (Transfer: G10)","collected":true},{"code":"R07","name":"Dongmen (Transfer: O06)","collected":true},{"code":"R06","name":"Daan Park","collected":true},{"code":"R05","name":"Daan (Transfer: BR09)","collected":true},{"code":"R04","name":"Xinyi Anhe","collected":false},{"code":"R03","name":"Taipei 101/World Trade Center","collected":true},{"code":"R02","name":"Xiangshan","collected":true},{"code":"R01","name":"Guangci/Fengtian Temple","collected":false}]},{"name":"Bannan Line (Blue Line - BL)","stations":[{"code":"BL01","name":"Dingpu","collected":false},{"code":"BL02","name":"Yongning","collected":false},{"code":"BL03","name":"Tucheng","collected":false},{"code":"BL04","name":"Haishan","collected":false},{"code":"BL05","name":"Far Eastern Hospital","collected":false},{"code":"BL06","name":"Fuzhong","collected":false},{"code":"BL07","name":"Banqiao (Transfer: Y15)","collected":false},{"code":"BL08","name":"Xinpu","collected":false},{"code":"BL09","name":"Jiangzicui","collected":false},{"code":"BL10","name":"Longshan Temple","collected":false},{"code":"BL11","name":"Ximen (Transfer: G12)","collected":false},{"code":"BL12","name":"Taipei Main Station (Transfer: R10)","collected":false},{"code":"BL13","name":"Shandao Temple","collected":true},{"code":"BL14","name":"Zhongxiao Xinsheng (Transfer: O07)","collected":false},{"code":"BL15","name":"Zhongxiao Fuxing (Transfer: BR10)","collected":false},{"code":"BL16","name":"Zhongxiao Dunhua","collected":false},{"code":"BL17","name":"Sun Yat-sen Memorial Hall","collected":true},{"code":"BL18","name":"Taipei City Hall","collected":true},{"code":"BL19","name":"Yongchun","collected":false},{"code":"BL20","name":"Houshanpi","collected":false},{"code":"BL21","name":"Kunyang","collected":true},{"code":"BL22","name":"Nangang","collected":false},{"code":"BL23","name":"Taipei Nangang Exhibition Center (Transfer: BR24)","collected":false}]},{"name":"Songshan-Xindian Line (Green Line - G)","stations":[{"code":"G01","name":"Xindian","collected":true},{"code":"G02","name":"Xindian District Office","collected":false},{"code":"G03A","name":"Xiaobitan (Branch line)","collected":true},{"code":"G03","name":"Qizhang (Transfer to Xiaobitan Branch)","collected":true},{"code":"G04","name":"Dapinglin (Transfer: Y07)","collected":false},{"code":"G05","name":"Jingmei","collected":true},{"code":"G06","name":"Wanlong","collected":false},{"code":"G07","name":"Gongguan","collected":false},{"code":"G08","name":"Taipower Building","collected":true},{"code":"G09","name":"Guting (Transfer: O05)","collected":true},{"code":"G10","name":"Chiang Kai-shek Memorial Hall (Transfer: R08)","collected":false},{"code":"G11","name":"Xiaonanmen","collected":true},{"code":"G12","name":"Ximen (Transfer: BL11)","collected":false},{"code":"G13","name":"Beimen","collected":false},{"code":"G14","name":"Zhongshan (Transfer: R11)","collected":false},{"code":"G15","name":"Songjiang Nanjing (Transfer: O12)","collected":false},{"code":"G16","name":"Nanjing Fuxing (Transfer: BR11)","collected":false},{"code":"G17","name":"Taipei Arena","collected":false},{"code":"G18","name":"Nanjing Samin","collected":false},{"code":"G19","name":"Songshan","collected":true}]},{"name":"Zhonghe-Xinlu Line (Orange Line - O)","stations":[{"code":"O01","name":"Nanshijiao","collected":false},{"code":"O02","name":"Jingan (Transfer: Y11)","collected":false},{"code":"O03","name":"Yongan Market","collected":true},{"code":"O04","name":"Dingxi","collected":true},{"code":"O05","name":"Guting (Transfer: G09)","collected":false},{"code":"O06","name":"Dongmen (Transfer: R07)","collected":false},{"code":"O07","name":"Zhongxiao Xinsheng (Transfer: BL14)","collected":true},{"code":"O08","name":"Songjiang Nanjing (Transfer: G16)","collected":false},{"code":"O09","name":"Xingtian Temple","collected":false},{"code":"O10","name":"Zhongshan Elementary School","collected":false},{"code":"O11","name":"Minquan West Road (Transfer: R13)","collected":false},{"code":"O12","name":"Daqiaotou (Splits to Luzhou Route)","collected":false},{"code":"O13","name":"Taipei Bridge","collected":true},{"code":"O14","name":"Cailiao","collected":false},{"code":"O15","name":"Sanchong","collected":true},{"code":"O16","name":"Xianse Temple","collected":false},{"code":"O17","name":"Touqianzhuang (Transfer: Y18)","collected":false},{"code":"O18","name":"Xinzhuang","collected":false},{"code":"O19","name":"Fu Jen University","collected":false},{"code":"O20","name":"Danfeng","collected":false},{"code":"O21","name":"Huilong","collected":false},{"code":"O50","name":"Sanchong Elementary School","collected":false},{"code":"O51","name":"Sanhe Junior High School","collected":false},{"code":"O52","name":"St. Ignatius High School","collected":false},{"code":"O53","name":"Sanmin Senior High School","collected":false},{"code":"O54","name":"Luzhou","collected":false}]},{"name":"Circular Line (Yellow Line - Y)","stations":[{"code":"Y07","name":"Dapinglin (Transfer: G04)","collected":false},{"code":"Y08","name":"Shisizhang","collected":false},{"code":"Y09","name":"Xiulang Bridge","collected":false},{"code":"Y10","name":"Jingping","collected":false},{"code":"Y11","name":"Zhonghe","collected":false},{"code":"Y12","name":"Qiaohe","collected":false},{"code":"Y13","name":"Zhongyuan","collected":false},{"code":"Y14","name":"Banxin","collected":false},{"code":"Y15","name":"Banqiao (Out-of-station transfer to BL07)","collected":false},{"code":"Y17","name":"Xinpu Minsheng (Out-of-station transfer to BL08)","collected":false},{"code":"Y18","name":"Touqianzhuang (Transfer: O17)","collected":false},{"code":"Y19","name":"Xingfu","collected":false},{"code":"Y20","name":"New Taipei Industrial Park","collected":false}]}];
 
-// Keep Red Line in ascending order, with R22A after R22.
-const redLine = original.find(section =>
- section.name.startsWith("Tamsui-Xinyi Line")
-);
+// Preserve the Red Line order.
+const redLine=original.find(s=>s.name.startsWith("Tamsui-Xinyi Line"));
 if(redLine){
  redLine.stations.sort((a,b)=>{
-  const numberA = Number(a.code.match(/^R(\d+)/)[1]);
-  const numberB = Number(b.code.match(/^R(\d+)/)[1]);
-  return numberA-numberB;
+  const na=Number(a.code.match(/^R(\d+)/)[1]);
+  const nb=Number(b.code.match(/^R(\d+)/)[1]);
+  return na-nb;
  });
 }
 
-const STORAGE_KEY = "taipei-mrt-stamps-v1";
-let sections = JSON.parse(JSON.stringify(original));
+const STORAGE_KEY="taipei-mrt-stamps-v1";
+let sections=JSON.parse(JSON.stringify(original));
 
 try{
- const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
- if(saved && Array.isArray(saved)){
-  const map = new Map(saved.map(x=>[x.code,!!x.collected]));
+ const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
+ if(saved&&Array.isArray(saved)){
+  const map=new Map(saved.map(x=>[x.code,!!x.collected]));
   sections.forEach(s=>s.stations.forEach(st=>{
    if(map.has(st.code))st.collected=map.get(st.code);
   }));
  }
 }catch(e){}
 
-let filter = "all";
-const $ = id => document.getElementById(id);
+let filter="all";
+const $=id=>document.getElementById(id);
 
 function allStations(){
  return sections.flatMap(s=>s.stations);
@@ -348,7 +406,6 @@ function updateStats(){
  $("fill").style.width=pct+"%";
  $("progress").textContent=`${done} of ${a.length} stamps collected`;
 
- // NEW: Calculate and display progress for each MRT line.
  const statsRoot=$("lineStats");
  statsRoot.innerHTML="";
 
@@ -396,7 +453,7 @@ function render(){
  const root=$("lines");
  root.innerHTML="";
 
- sections.forEach((section,si)=>{
+ sections.forEach(section=>{
   const shown=section.stations.filter(st=>{
    const matches=(st.code+" "+st.name).toLowerCase().includes(q);
    const matchesFilter=filter==="all"||
@@ -504,6 +561,19 @@ $("exportBtn").addEventListener("click",()=>{
  a.download="Taipei-MRT-stamp-checklist.txt";
  a.click();
  URL.revokeObjectURL(url);
+});
+
+// Map screen navigation.
+$("openMapBtn").addEventListener("click",()=>{
+ $("mainScreen").classList.add("hidden");
+ $("mapScreen").classList.add("visible");
+ window.scrollTo(0,0);
+});
+
+$("backBtn").addEventListener("click",()=>{
+ $("mapScreen").classList.remove("visible");
+ $("mainScreen").classList.remove("hidden");
+ window.scrollTo(0,0);
 });
 
 updateStats();
