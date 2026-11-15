@@ -578,8 +578,10 @@ function renderStationInfoEditor(station){
  root.appendChild(card);
 }
 
+/* Save only the station being edited. */
 async function saveStationInfoEditor(station){
  const updated={};
+
  stationInfoFields.forEach(field=>{
   const input=$("station-info-"+field.key);
   updated[field.key]=input?input.value.trim():"";
@@ -604,18 +606,21 @@ async function saveStationInfoEditor(station){
  const newStatus=$("stationInformation").querySelector(".station-info-note");
  if(newStatus)newStatus.textContent="✓ Your station information has been saved on this device.";
 
- await saveStationInformationToCloud();
+ await saveStationInformationToCloud(station.code,updated);
 }
 
-async function saveStationInformationToCloud(){
+/* Update one Firestore station field instead of replacing the entire map. */
+async function saveStationInformationToCloud(code,values){
  if(!auth.currentUser||!cloudReady||applyingCloud)return;
 
+ const uid=auth.currentUser.uid;
  const version=infoSaveVersion;
+
  try{
-  await db.collection("users").doc(auth.currentUser.uid).set({
-   stationInformation:stationInformation,
+  await db.collection("users").doc(uid).update({
+   ["stationInformation."+code]:values,
    stationInformationUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
-  },{merge:true});
+  });
 
   if(version===infoSaveVersion){
    $("syncStatus").textContent="☁️ Synced";
@@ -1003,7 +1008,6 @@ async function save(){
   await db.collection("users").doc(auth.currentUser.uid).set({
    stations,
    notes:stationNotes,
-   stationInformation:stationInformation,
    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   },{merge:true});
   $("syncStatus").textContent="☁️ Synced";
