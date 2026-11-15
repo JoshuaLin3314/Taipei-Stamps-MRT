@@ -31,7 +31,7 @@ header{
 h1{font-size:25px;margin:0 0 5px}
 .sub{opacity:.82;font-size:13px}
 main{max-width:760px;margin:0 auto;padding:16px}
-.summary,.line-stats,.map-card,.diagram-card{
+.summary,.line-stats,.map-card,.diagram-card,.guide-card{
  background:var(--card);border:1px solid var(--line);
  border-radius:18px;padding:18px;margin:14px 0;
  box-shadow:0 4px 16px #17352f0c
@@ -49,7 +49,9 @@ main{max-width:760px;margin:0 auto;padding:16px}
  height:100%;width:0;background:var(--green);border-radius:20px;transition:width .2s
 }
 .progressline{text-align:center;font-size:14px;color:var(--muted)}
-.line-stats h2,.map-card h2,.diagram-card h2{font-size:17px;margin:0 0 16px}
+.line-stats h2,.map-card h2,.diagram-card h2,.guide-card h2{
+ font-size:17px;margin:0 0 16px
+}
 .line-stat{margin:14px 0}
 .line-stat:last-child{margin-bottom:0}
 .line-stat-top{
@@ -65,10 +67,10 @@ main{max-width:760px;margin:0 auto;padding:16px}
  height:100%;width:0;background:var(--green);border-radius:20px;transition:width .25s
 }
 .route-link{
- color:var(--green);font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap
+ color:var(--green);font-size:12px;font-weight:700;text-decoration:none;
+ white-space:nowrap;border:0;background:none;padding:5px 0;cursor:pointer
 }
 .route-link:hover{text-decoration:underline}
-.line-stat-percent{font-size:11px;color:var(--muted);margin-top:4px}
 .controls{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap}
 input[type=search]{
  flex:1;min-width:180px;padding:12px 14px;border:1px solid var(--line);
@@ -84,8 +86,8 @@ button.active{background:#dceee5;border-color:#a8cdb9;color:#14573f}
  padding:16px;border-radius:14px;font-size:16px;font-weight:750;margin:16px 0
 }
 .map-button:active{opacity:.85}
-.map-screen,.diagram-screen{display:none}
-.map-screen.visible,.diagram-screen.visible{display:block}
+.map-screen,.diagram-screen,.guide-screen{display:none}
+.map-screen.visible,.diagram-screen.visible,.guide-screen.visible{display:block}
 .main-screen.hidden{display:none}
 .map-top{
  display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px
@@ -116,6 +118,24 @@ button.active{background:#dceee5;border-color:#a8cdb9;color:#14573f}
 .station.done .details{color:#718078;text-decoration:line-through}
 .footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 8px 34px}
 #syncStatus{font-size:12px;color:var(--muted);align-self:center}
+
+/* PDF Route Guide */
+.guide-description{
+ color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 14px
+}
+.guide-frame-wrap{
+ width:100%;height:70vh;min-height:420px;
+ border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#f1f3f1
+}
+.guide-frame{width:100%;height:100%;border:0;display:block}
+.guide-fallback{
+ display:block;text-align:center;color:var(--green);font-weight:700;
+ font-size:13px;margin-top:14px;text-decoration:none
+}
+.guide-fallback:hover{text-decoration:underline}
+.guide-page-label{
+ font-size:12px;color:var(--muted);text-align:center;margin:0 0 10px
+}
 
 /* Network Diagram */
 .diagram-intro{
@@ -171,6 +191,11 @@ button.active{background:#dceee5;border-color:#a8cdb9;color:#14573f}
  .section{display:inline-block;width:calc(50% - 8px);vertical-align:top;margin:8px 3px}
  .section h2{min-height:54px}
  .diagram-line-selectors{grid-template-columns:repeat(6,minmax(0,1fr))}
+}
+@media(max-width:420px){
+ .map-top{align-items:flex-start}
+ .map-top h2{font-size:18px}
+ .guide-frame-wrap{height:65vh;min-height:360px}
 }
 </style>
 </head>
@@ -260,6 +285,44 @@ button.active{background:#dceee5;border-color:#a8cdb9;color:#14573f}
    <span class="legend-item"><span class="legend-dot" style="background:white;border:2px solid #64756f"></span> Not collected</span>
   </div>
   <div id="diagramStations" class="diagram-stations"></div>
+ </section>
+</div>
+
+<!-- PDF Route Guide Screen -->
+<div id="guideScreen" class="guide-screen">
+ <section class="guide-card">
+  <div class="map-top">
+   <h2>📄 MRT Route Guide</h2>
+   <button class="back-button" id="backGuideBtn">← Back to Main Tracker</button>
+  </div>
+
+  <p class="guide-description">
+   Your Taipei MRT route guide. Use the button above to return to your stamp collection.
+  </p>
+
+  <p class="guide-page-label" id="guidePageLabel">Route guide</p>
+
+  <div class="guide-frame-wrap">
+   <iframe
+    id="guideFrame"
+    class="guide-frame"
+    title="Taipei MRT route guide PDF"
+    src="about:blank">
+   </iframe>
+  </div>
+
+  <a
+   id="openPdfSeparately"
+   class="guide-fallback"
+   href="MRT%20Taipei%20Station.pdf"
+   target="_blank"
+   rel="noopener">
+   Open PDF separately ↗
+  </a>
+
+  <div class="map-note">
+   If the PDF does not appear inside the tracker on your device, use “Open PDF separately” above.
+  </div>
  </section>
 </div>
 </main>
@@ -475,6 +538,31 @@ function allStations(){
  return sections.flatMap(s=>s.stations);
 }
 
+/* PDF Route Guide */
+const routePages={
+ "Wenhu Line (Brown Line - BR)":1,
+ "Tamsui-Xinyi Line (Red Line - R)":2,
+ "Bannan Line (Blue Line - BL)":5,
+ "Songshan-Xindian Line (Green Line - G)":3,
+ "Zhonghe-Xinlu Line (Orange Line - O)":4,
+ "Circular Line (Yellow Line - Y)":6
+};
+
+function openGuide(page,lineName){
+ $("mainScreen").classList.add("hidden");
+ $("mapScreen").classList.remove("visible");
+ $("diagramScreen").classList.remove("visible");
+ $("guideScreen").classList.add("visible");
+
+ $("guidePageLabel").textContent=(lineName||"MRT")+" — PDF page "+page;
+
+ const pdf="MRT%20Taipei%20Station.pdf";
+ $("guideFrame").src=pdf+"#page="+page+"&toolbar=1";
+ $("openPdfSeparately").href=pdf+"#page="+page;
+
+ window.scrollTo(0,0);
+}
+
 function updateStats(){
  const a=allStations();
  const done=a.filter(s=>s.collected).length;
@@ -488,15 +576,6 @@ function updateStats(){
 
  const statsRoot=$("lineStats");
  statsRoot.innerHTML="";
-
- const routePages={
-  "Wenhu Line (Brown Line - BR)":1,
-  "Tamsui-Xinyi Line (Red Line - R)":2,
-  "Bannan Line (Blue Line - BL)":5,
-  "Songshan-Xindian Line (Green Line - G)":3,
-  "Zhonghe-Xinlu Line (Orange Line - O)":4,
-  "Circular Line (Yellow Line - Y)":6
- };
 
  sections.forEach(section=>{
   const stations=section.stations;
@@ -526,12 +605,13 @@ function updateStats(){
   fill.style.width=linePct+"%";
   track.appendChild(fill);
 
-  const route=document.createElement("a");
+  const route=document.createElement("button");
   route.className="route-link";
+  route.type="button";
   route.textContent="📄 View Route";
-  route.href="MRT%20Taipei%20Station.pdf#page="+routePages[section.name];
-  route.target="_blank";
-  route.rel="noopener";
+  route.addEventListener("click",()=>{
+   openGuide(routePages[section.name],section.name);
+  });
 
   const barRow=document.createElement("div");
   barRow.className="line-stat-bar-row";
@@ -774,13 +854,16 @@ $("exportBtn").addEventListener("click",()=>{
 function showMainScreen(){
  $("mapScreen").classList.remove("visible");
  $("diagramScreen").classList.remove("visible");
+ $("guideScreen").classList.remove("visible");
  $("mainScreen").classList.remove("hidden");
+ $("guideFrame").src="about:blank";
  window.scrollTo(0,0);
 }
 
 $("openMapBtn").addEventListener("click",()=>{
  $("mainScreen").classList.add("hidden");
  $("diagramScreen").classList.remove("visible");
+ $("guideScreen").classList.remove("visible");
  $("mapScreen").classList.add("visible");
  window.scrollTo(0,0);
 });
@@ -790,12 +873,16 @@ $("backBtn").addEventListener("click",showMainScreen);
 $("openDiagramBtn").addEventListener("click",()=>{
  $("mainScreen").classList.add("hidden");
  $("mapScreen").classList.remove("visible");
+ $("guideScreen").classList.remove("visible");
  $("diagramScreen").classList.add("visible");
  renderDiagram();
  window.scrollTo(0,0);
 });
 
 $("backDiagramBtn").addEventListener("click",showMainScreen);
+
+/* PDF Guide navigation */
+$("backGuideBtn").addEventListener("click",showMainScreen);
 
 /* Initial display */
 updateStats();
