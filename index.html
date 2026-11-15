@@ -548,17 +548,33 @@ const routePages={
  "Circular Line (Yellow Line - Y)":6
 };
 
+/* Updated PDF page loading */
 function openGuide(page,lineName){
  $("mainScreen").classList.add("hidden");
  $("mapScreen").classList.remove("visible");
  $("diagramScreen").classList.remove("visible");
  $("guideScreen").classList.add("visible");
 
- $("guidePageLabel").textContent=(lineName||"MRT")+" — PDF page "+page;
+ const pageNumber=Number(page);
+
+ $("guidePageLabel").textContent=
+  (lineName||"MRT")+" — PDF page "+pageNumber;
 
  const pdf="MRT%20Taipei%20Station.pdf";
- $("guideFrame").src=pdf+"#page="+page+"&toolbar=1";
- $("openPdfSeparately").href=pdf+"#page="+page;
+
+ // Give each page a unique URL to force the PDF viewer to reload.
+ const pdfUrl=
+  pdf+"?linePage="+pageNumber+
+  "#page="+pageNumber+"&toolbar=1";
+
+ // Clear the previous PDF before loading the selected page.
+ $("guideFrame").src="about:blank";
+
+ requestAnimationFrame(()=>{
+  $("guideFrame").src=pdfUrl;
+ });
+
+ $("openPdfSeparately").href=pdfUrl;
 
  window.scrollTo(0,0);
 }
