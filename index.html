@@ -646,7 +646,7 @@ function updateStats(){
  $("remaining").textContent=a.length-done;
  $("percent").textContent=pct.toFixed(1)+"%";
  $("fill").style.width=pct+"%";
- $("progress").textContent=${done} of ${a.length} stamps collected;
+ $("progress").textContent=`${done} of ${a.length} stamps collected`;
 
  const statsRoot=$("lineStats");
  statsRoot.innerHTML="";
@@ -668,7 +668,7 @@ function updateStats(){
 
   const count=document.createElement("span");
   count.className="line-stat-count";
-  count.textContent=${collected}/${total};
+  count.textContent=`${collected}/${total}`;
   top.append(name,count);
 
   const track=document.createElement("div");
@@ -732,7 +732,7 @@ function render(){
    const cb=document.createElement("input");
    cb.type="checkbox";
    cb.checked=st.collected;
-   cb.setAttribute("aria-label",Collected ${st.code} ${st.name});
+   cb.setAttribute("aria-label",`Collected ${st.code} ${st.name}`);
 
    cb.addEventListener("change",()=>{
     st.collected=cb.checked;
@@ -796,7 +796,7 @@ function renderDiagram(){
  const pct=total?collected/total*100:0;
 
  $("diagramLineName").textContent=section.name;
- $("diagramLineCount").textContent=${collected} / ${total} collected;
+ $("diagramLineCount").textContent=`${collected} / ${total} collected`;
  $("diagramProgressFill").style.width=pct+"%";
  $("diagramProgressFill").style.background=color;
 
