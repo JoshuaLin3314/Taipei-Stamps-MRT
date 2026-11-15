@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -31,7 +32,7 @@ header{
 h1{font-size:25px;margin:0 0 5px}
 .sub{opacity:.82;font-size:13px}
 main{max-width:760px;margin:0 auto;padding:16px}
-.summary,.line-stats,.map-card,.diagram-card,.guide-card{
+.summary,.line-stats,.map-card,.diagram-card,.guide-card,.station-detail-card{
  background:var(--card);border:1px solid var(--line);
  border-radius:18px;padding:18px;margin:14px 0;
  box-shadow:0 4px 16px #17352f0c
@@ -81,13 +82,15 @@ button{
  padding:11px 13px;border-radius:12px;font-weight:650;font-size:14px;cursor:pointer
 }
 button.active{background:#dceee5;border-color:#a8cdb9;color:#14573f}
+button:disabled{opacity:.55;cursor:not-allowed}
 .map-button{
  display:block;width:100%;background:#176b50;color:white;border:0;
  padding:16px;border-radius:14px;font-size:16px;font-weight:750;margin:16px 0
 }
 .map-button:active{opacity:.85}
-.map-screen,.diagram-screen,.guide-screen{display:none}
-.map-screen.visible,.diagram-screen.visible,.guide-screen.visible{display:block}
+.map-screen,.diagram-screen,.guide-screen,.station-detail-screen{display:none}
+.map-screen.visible,.diagram-screen.visible,.guide-screen.visible,
+.station-detail-screen.visible{display:block}
 .main-screen.hidden{display:none}
 .map-top{
  display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px
@@ -113,10 +116,55 @@ button.active{background:#dceee5;border-color:#a8cdb9;color:#14573f}
 .station input{
  width:20px;height:20px;accent-color:var(--green);flex:none;margin:1px 0 0
 }
-.station .details{flex:1;line-height:1.35}
+.station .details{flex:1;line-height:1.35;min-width:0}
 .code{font-weight:750;font-variant-numeric:tabular-nums}
-.station.done .details{color:#718078;text-decoration:line-through}
+.station.done .details{color:#718078}
+.station.done .station-name-button{text-decoration:line-through;color:#718078}
+.station-name-button{
+ display:inline;text-align:left;border:0;background:none;padding:0;
+ color:var(--ink);font:inherit;font-weight:600;border-radius:0;
+ text-decoration:underline;text-decoration-color:#b7c8bd;
+ text-underline-offset:3px;line-height:1.4
+}
+.station-name-button:hover{color:var(--green)}
 .footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 8px 34px}
+
+/* Station Detail */
+.station-detail-card{padding:20px}
+.station-detail-top{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:10px;margin-bottom:22px
+}
+.station-detail-top h2{font-size:19px;margin:0}
+.station-detail-name{font-size:26px;font-weight:800;margin:8px 0 5px;line-height:1.2}
+.station-detail-code{font-size:15px;color:var(--muted);font-weight:700}
+.station-line-row{
+ display:flex;align-items:center;gap:10px;margin:20px 0;
+ padding:14px;background:#f5f7f3;border-radius:14px
+}
+.station-line-dot{width:15px;height:15px;border-radius:50%;flex:none}
+.station-line-name{font-size:14px;font-weight:700}
+.station-detail-label{
+ font-size:11px;color:var(--muted);text-transform:uppercase;
+ letter-spacing:.07em;margin-bottom:5px
+}
+.station-map-panel{
+ border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:18px
+}
+.station-map-panel h3{font-size:16px;margin:0 0 8px}
+.station-map-panel p{
+ color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 14px
+}
+.official-map-button{
+ display:block;width:100%;text-align:center;text-decoration:none;
+ background:#176b50;color:white;border-radius:12px;padding:15px;
+ font-size:14px;font-weight:750
+}
+.official-map-button:active{opacity:.85}
+.station-detail-back{
+ display:block;width:100%;margin-top:16px;
+ background:#176b50;color:white;border:0;padding:15px
+}
 
 /* PDF Route Guide — PDF.js viewer */
 .guide-description{
@@ -199,6 +247,9 @@ button.active{background:#dceee5;border-color:#a8cdb9;color:#14573f}
 @media(max-width:420px){
  .map-top{align-items:flex-start}
  .map-top h2{font-size:18px}
+ .station-detail-top{align-items:flex-start}
+ .station-detail-top h2{font-size:17px}
+ .station-detail-name{font-size:23px}
 }
 </style>
 </head>
@@ -323,6 +374,49 @@ button.active{background:#dceee5;border-color:#a8cdb9;color:#14573f}
   </div>
  </section>
 </div>
+
+<!-- Station Detail Screen -->
+<div id="stationDetailScreen" class="station-detail-screen">
+ <section class="station-detail-card">
+  <div class="station-detail-top">
+   <h2>🚉 Station Information</h2>
+   <button class="back-button" id="backStationBtn">← Back</button>
+  </div>
+
+  <div class="station-detail-label">Station name</div>
+  <div class="station-detail-name" id="detailStationName"></div>
+  <div class="station-detail-code" id="detailStationCode"></div>
+
+  <div class="station-line-row">
+   <span class="station-line-dot" id="detailLineDot"></span>
+   <div>
+    <div class="station-detail-label">MRT line</div>
+    <div class="station-line-name" id="detailLineName"></div>
+   </div>
+  </div>
+
+  <div class="station-map-panel">
+   <h3>🗺️ Official Station Information Map</h3>
+   <p>
+    Open the official Taipei Metro station information page to find the station
+    layout, exits, facilities, and station maps.
+   </p>
+   <a
+    id="officialStationLink"
+    class="official-map-button"
+    href="https://web.metro.taipei/"
+    target="_blank"
+    rel="noopener noreferrer">
+    Open Official Taipei Metro Station Information ↗
+   </a>
+  </div>
+
+  <button class="station-detail-back" id="backStationBottomBtn">
+   ← Back to Stamp Tracker
+  </button>
+ </section>
+</div>
+
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -518,6 +612,7 @@ try{
 
 let filter="all";
 let selectedDiagramLine=0;
+let previousScreen="main";
 const $=id=>document.getElementById(id);
 
 const lineColors={
@@ -529,13 +624,61 @@ const lineColors={
  "Circular Line (Yellow Line - Y)":"#D4B900"
 };
 
-const shortLineNames=[
- "Brown","Red","Blue","Green","Orange","Yellow"
-];
+const shortLineNames=["Brown","Red","Blue","Green","Orange","Yellow"];
 
 function allStations(){
  return sections.flatMap(s=>s.stations);
 }
+
+function cleanStationName(name){
+ return name
+  .replace(/\s*\([^)]*\)/g,"")
+  .trim();
+}
+
+function getStationLine(station){
+ return sections.find(section=>section.stations.includes(station));
+}
+
+/* Station detail page */
+function openStationDetail(station){
+ const section=getStationLine(station);
+ if(!section)return;
+
+ previousScreen="main";
+
+ $("mainScreen").classList.add("hidden");
+ $("mapScreen").classList.remove("visible");
+ $("diagramScreen").classList.remove("visible");
+ $("guideScreen").classList.remove("visible");
+ $("stationDetailScreen").classList.add("visible");
+
+ const color=lineColors[section.name]||"#176b50";
+ const cleanName=cleanStationName(station.name);
+
+ $("detailStationName").textContent=cleanName;
+ $("detailStationCode").textContent=station.code;
+ $("detailLineName").textContent=section.name;
+ $("detailLineDot").style.background=color;
+
+ // Search only within the official Taipei Metro website.
+ const officialSearch=
+  "https://www.google.com/search?q="+
+  encodeURIComponent('site:web.metro.taipei/pages2026/WebStation/ "'+cleanName+'" Taipei Metro');
+
+ $("officialStationLink").href=officialSearch;
+
+ window.scrollTo(0,0);
+}
+
+function closeStationDetail(){
+ $("stationDetailScreen").classList.remove("visible");
+ $("mainScreen").classList.remove("hidden");
+ window.scrollTo(0,0);
+}
+
+$("backStationBtn").addEventListener("click",closeStationDetail);
+$("backStationBottomBtn").addEventListener("click",closeStationDetail);
 
 /* PDF Route Guide */
 const routePages={
@@ -547,7 +690,6 @@ const routePages={
  "Circular Line (Yellow Line - Y)":6
 };
 
-/* PDF.js setup */
 pdfjsLib.GlobalWorkerOptions.workerSrc =
  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
@@ -559,6 +701,7 @@ async function openGuide(page,lineName){
  $("mainScreen").classList.add("hidden");
  $("mapScreen").classList.remove("visible");
  $("diagramScreen").classList.remove("visible");
+ $("stationDetailScreen").classList.remove("visible");
  $("guideScreen").classList.add("visible");
 
  const pageNumber=Number(page);
@@ -595,7 +738,6 @@ async function openGuide(page,lineName){
   }
 
   const pdfPage=await currentPdf.getPage(pageNumber);
-
   if(requestNumber!==guideRequest)return;
 
   const wrap=document.querySelector(".guide-frame-wrap");
@@ -726,8 +868,8 @@ function render(){
   box.appendChild(h);
 
   shown.forEach(st=>{
-   const label=document.createElement("label");
-   label.className="station"+(st.collected?" done":"");
+   const row=document.createElement("div");
+   row.className="station"+(st.collected?" done":"");
 
    const cb=document.createElement("input");
    cb.type="checkbox";
@@ -741,17 +883,23 @@ function render(){
     render();
    });
 
-   const details=document.createElement("span");
+   const details=document.createElement("div");
    details.className="details";
 
    const code=document.createElement("span");
    code.className="code";
    code.textContent=st.code+" — ";
 
-   details.appendChild(code);
-   details.appendChild(document.createTextNode(st.name));
-   label.append(cb,details);
-   box.appendChild(label);
+   const nameButton=document.createElement("button");
+   nameButton.type="button";
+   nameButton.className="station-name-button";
+   nameButton.textContent=cleanStationName(st.name);
+   nameButton.setAttribute("aria-label","Open details for "+cleanStationName(st.name));
+   nameButton.addEventListener("click",()=>openStationDetail(st));
+
+   details.append(code,nameButton);
+   row.append(cb,details);
+   box.appendChild(row);
   });
 
   root.appendChild(box);
@@ -829,9 +977,11 @@ function renderDiagram(){
 
   const stationText=document.createElement("div");
 
-  const stationName=document.createElement("div");
-  stationName.className="diagram-station-name";
-  stationName.textContent=station.name;
+  const stationName=document.createElement("button");
+  stationName.type="button";
+  stationName.className="station-name-button diagram-station-name";
+  stationName.textContent=cleanStationName(station.name);
+  stationName.addEventListener("click",()=>openStationDetail(station));
 
   const stationCode=document.createElement("div");
   stationCode.className="diagram-station-code";
@@ -936,6 +1086,7 @@ function showMainScreen(){
  $("mapScreen").classList.remove("visible");
  $("diagramScreen").classList.remove("visible");
  $("guideScreen").classList.remove("visible");
+ $("stationDetailScreen").classList.remove("visible");
  $("mainScreen").classList.remove("hidden");
  window.scrollTo(0,0);
 }
@@ -944,6 +1095,7 @@ $("openMapBtn").addEventListener("click",()=>{
  $("mainScreen").classList.add("hidden");
  $("diagramScreen").classList.remove("visible");
  $("guideScreen").classList.remove("visible");
+ $("stationDetailScreen").classList.remove("visible");
  $("mapScreen").classList.add("visible");
  window.scrollTo(0,0);
 });
@@ -954,14 +1106,13 @@ $("openDiagramBtn").addEventListener("click",()=>{
  $("mainScreen").classList.add("hidden");
  $("mapScreen").classList.remove("visible");
  $("guideScreen").classList.remove("visible");
+ $("stationDetailScreen").classList.remove("visible");
  $("diagramScreen").classList.add("visible");
  renderDiagram();
  window.scrollTo(0,0);
 });
 
 $("backDiagramBtn").addEventListener("click",showMainScreen);
-
-/* PDF Guide navigation */
 $("backGuideBtn").addEventListener("click",showMainScreen);
 
 /* Initial display */
