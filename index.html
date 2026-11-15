@@ -1,14 +1,13 @@
-
 <!doctype html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Taipei MRT Stamps">
-<link rel="apple-touch-icon" href="IMG_3002.jpeg">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#123d36">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Taipei MRT Stamps">
+<meta name="apple-touch-icon" href="IMG_3002.jpeg">
 <title>Taipei MRT Stamp Tracker</title>
 
 <style>
@@ -67,6 +66,7 @@ main{max-width:760px;margin:0 auto;padding:16px}
 .line-stat-fill{
  height:100%;width:0;background:var(--green);border-radius:20px;transition:width .25s
 }
+.line-stat-percent{font-size:11px;color:var(--muted);margin-top:5px}
 .route-link{
  color:var(--green);font-size:12px;font-weight:700;text-decoration:none;
  white-space:nowrap;border:0;background:none;padding:5px 0;cursor:pointer
@@ -129,7 +129,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .station-name-button:hover{color:var(--green)}
 .footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 8px 34px}
 
-/* Station Detail */
+/* Station details */
 .station-detail-card{padding:20px}
 .station-detail-top{
  display:flex;align-items:center;justify-content:space-between;
@@ -148,37 +148,50 @@ button:disabled{opacity:.55;cursor:not-allowed}
  font-size:11px;color:var(--muted);text-transform:uppercase;
  letter-spacing:.07em;margin-bottom:5px
 }
-.station-map-panel{
- border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:18px
+.detail-info-panel{
+ border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0
 }
-.station-map-panel h3{font-size:16px;margin:0 0 8px}
-.station-map-panel p{
- color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 14px
+.detail-info-panel h3{font-size:16px;margin:0 0 12px}
+.detail-info-panel p{
+ color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 10px
 }
-.official-map-button{
- display:block;width:100%;text-align:center;text-decoration:none;
- background:#176b50;color:white;border-radius:12px;padding:15px;
- font-size:14px;font-weight:750
+.detail-list{margin:0;padding-left:20px}
+.detail-list li{font-size:14px;line-height:1.55;margin:7px 0}
+.transfer-chip{
+ display:inline-block;background:#eaf2ed;border:1px solid #d4e4d9;
+ border-radius:9px;padding:7px 10px;margin:4px 5px 4px 0;
+ font-size:13px;font-weight:700
 }
-.official-map-button:active{opacity:.85}
+.station-map-viewer{
+ width:100%;height:520px;border:1px solid var(--line);
+ border-radius:12px;background:#f2f4f2
+}
+.station-map-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.station-map-actions a{
+ display:inline-block;text-decoration:none;background:#176b50;color:white;
+ border-radius:10px;padding:11px 13px;font-size:13px;font-weight:700
+}
+.station-map-actions a.secondary{background:#eaf1ed;color:var(--ink)}
+.map-unavailable{
+ padding:16px;background:#f5f7f3;border-radius:12px;
+ color:var(--muted);font-size:13px;line-height:1.55
+}
 .station-detail-back{
  display:block;width:100%;margin-top:16px;
  background:#176b50;color:white;border:0;padding:15px
 }
 
-/* PDF Route Guide — PDF.js viewer */
+/* PDF route guide */
 .guide-description{
  color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 14px
 }
 .guide-frame-wrap{
- width:100%;min-height:420px;
- border:1px solid var(--line);border-radius:12px;
- overflow:auto;background:#e9ece9;padding:8px
+ width:100%;min-height:420px;border:1px solid var(--line);
+ border-radius:12px;overflow:auto;background:#e9ece9;padding:8px
 }
 #guideCanvas{
- display:block;width:100%;height:auto;
- margin:0 auto;background:white;border-radius:4px;
- box-shadow:0 2px 8px #0002
+ display:block;width:100%;height:auto;margin:0 auto;background:white;
+ border-radius:4px;box-shadow:0 2px 8px #0002
 }
 .guide-fallback{
  display:block;text-align:center;color:var(--green);font-weight:700;
@@ -189,7 +202,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
  font-size:12px;color:var(--muted);text-align:center;margin:0 0 10px
 }
 
-/* Network Diagram */
+/* Network diagram */
 .diagram-intro{
  color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 15px
 }
@@ -250,6 +263,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
  .station-detail-top{align-items:flex-start}
  .station-detail-top h2{font-size:17px}
  .station-detail-name{font-size:23px}
+ .station-map-viewer{height:430px}
 }
 </style>
 </head>
@@ -342,40 +356,30 @@ button:disabled{opacity:.55;cursor:not-allowed}
  </section>
 </div>
 
-<!-- PDF Route Guide Screen -->
 <div id="guideScreen" class="guide-screen">
  <section class="guide-card">
   <div class="map-top">
    <h2>📄 MRT Route Guide</h2>
    <button class="back-button" id="backGuideBtn">← Back to Main Tracker</button>
   </div>
-
   <p class="guide-description">
    Your Taipei MRT route guide. Use the button above to return to your stamp collection.
   </p>
-
   <p class="guide-page-label" id="guidePageLabel">Route guide</p>
-
   <div class="guide-frame-wrap">
    <canvas id="guideCanvas"></canvas>
   </div>
-
-  <a
-   id="openPdfSeparately"
-   class="guide-fallback"
-   href="MRT%20Taipei%20Station.pdf"
-   target="_blank"
-   rel="noopener">
+  <a id="openPdfSeparately" class="guide-fallback"
+     href="MRT%20Taipei%20Station.pdf" target="_blank" rel="noopener">
    Open PDF separately ↗
   </a>
-
   <div class="map-note">
    If the PDF preview does not load, use “Open PDF separately” above.
   </div>
  </section>
 </div>
 
-<!-- Station Detail Screen -->
+<!-- Individual station details -->
 <div id="stationDetailScreen" class="station-detail-screen">
  <section class="station-detail-card">
   <div class="station-detail-top">
@@ -395,20 +399,22 @@ button:disabled{opacity:.55;cursor:not-allowed}
    </div>
   </div>
 
-  <div class="station-map-panel">
-   <h3>🗺️ Official Station Information Map</h3>
-   <p>
-    Open the official Taipei Metro station information page to find the station
-    layout, exits, facilities, and station maps.
+  <div class="detail-info-panel">
+   <h3>🔁 Transfers and connections</h3>
+   <div id="detailTransfers"></div>
+  </div>
+
+  <div class="detail-info-panel">
+   <h3>🚪 Exits and nearby places</h3>
+   <div id="detailExits"></div>
+  </div>
+
+  <div class="detail-info-panel">
+   <h3>🗺️ Official station information map</h3>
+   <p id="stationMapDescription">
+    The official Taipei Metro station map appears below when a verified map file is available.
    </p>
-   <a
-    id="officialStationLink"
-    class="official-map-button"
-    href="https://web.metro.taipei/"
-    target="_blank"
-    rel="noopener noreferrer">
-    Open Official Taipei Metro Station Information ↗
-   </a>
+   <div id="stationMapContent"></div>
   </div>
 
   <button class="station-detail-back" id="backStationBottomBtn">
@@ -416,7 +422,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
   </button>
  </section>
 </div>
-
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -588,7 +593,6 @@ const original = [
 ]}
 ];
 
-// Preserve the Red Line ordering from the original tracker.
 const redLine=original.find(s=>s.name.startsWith("Tamsui-Xinyi Line"));
 if(redLine){
  redLine.stations.sort((a,b)=>{
@@ -613,6 +617,7 @@ try{
 let filter="all";
 let selectedDiagramLine=0;
 let previousScreen="main";
+let currentStation=null;
 const $=id=>document.getElementById(id);
 
 const lineColors={
@@ -623,28 +628,137 @@ const lineColors={
  "Zhonghe-Xinlu Line (Orange Line - O)":"#F39A24",
  "Circular Line (Yellow Line - Y)":"#D4B900"
 };
-
 const shortLineNames=["Brown","Red","Blue","Green","Orange","Yellow"];
 
-function allStations(){
- return sections.flatMap(s=>s.stations);
-}
+function allStations(){return sections.flatMap(s=>s.stations);}
 
 function cleanStationName(name){
- return name
-  .replace(/\s*\([^)]*\)/g,"")
-  .trim();
+ return name.replace(/\s*\([^)]*\)/g,"").trim();
 }
 
 function getStationLine(station){
  return sections.find(section=>section.stations.includes(station));
 }
 
-/* Station detail page */
+/*
+ * Official Taipei Metro map PDFs.
+ * These are deliberately limited to station maps whose PDF IDs
+ * have been verified. Do not assume station codes are PDF IDs.
+ */
+const officialStationMaps={
+ "R10":{
+  mapId:"051",
+  page:"https://web.metro.taipei/pages/en/station/051",
+  label:"Taipei Main Station"
+ },
+ "BL12":{
+  mapId:"051",
+  page:"https://web.metro.taipei/pages/en/station/051",
+  label:"Taipei Main Station"
+ },
+ "R05":{
+  mapId:"011",
+  page:"https://web.metro.taipei/pages/en/station/011",
+  label:"Daan"
+ },
+ "BR09":{
+  mapId:"011",
+  page:"https://web.metro.taipei/pages/en/station/011",
+  label:"Daan"
+ },
+ "G03":{
+  mapId:"035",
+  page:"https://web.metro.taipei/pages/en/station/035",
+  label:"Qizhang"
+ }
+};
+
+/*
+ * Verified Taipei Main Station exit information.
+ * The official map is also embedded below.
+ */
+const stationExitInfo={
+ "R10":[
+  "M1 — Near the north entrance of Taipei Main Station (Taiwan Railway).",
+  "M2 — Near No. 209, Section 1, Civic Boulevard, close to the Dr. Sun Yat-Sen Memorial House.",
+  "M3 — No. 45, Section 1, Zhongxiao West Road.",
+  "M4 — Near No. 38, Section 1, Zhongxiao West Road.",
+  "M5 — Near No. 66, Section 1, Zhongxiao West Road.",
+  "M6 — No. 38, Section 1, Zhongxiao West Road.",
+  "M7 — No. 33, Section 1, Zhongxiao West Road.",
+  "M8 — No. 13, Gongyuan Road."
+ ],
+ "BL12":[
+  "M1 — Near the north entrance of Taipei Main Station (Taiwan Railway).",
+  "M2 — Near No. 209, Section 1, Civic Boulevard, close to the Dr. Sun Yat-Sen Memorial House.",
+  "M3 — No. 45, Section 1, Zhongxiao West Road.",
+  "M4 — Near No. 38, Section 1, Zhongxiao West Road.",
+  "M5 — Near No. 66, Section 1, Zhongxiao West Road.",
+  "M6 — No. 38, Section 1, Zhongxiao West Road.",
+  "M7 — No. 33, Section 1, Zhongxiao West Road.",
+  "M8 — No. 13, Gongyuan Road."
+ ]
+};
+
+function getLineNameFromCode(code){
+ const prefix=code.match(/^[A-Z]+/);
+ if(!prefix)return "MRT";
+ const p=prefix[0];
+ const names={
+  BR:"Wenhu Line (Brown Line)",
+  R:"Tamsui-Xinyi Line (Red Line)",
+  BL:"Bannan Line (Blue Line)",
+  G:"Songshan-Xindian Line (Green Line)",
+  O:"Zhonghe-Xinlu Line (Orange Line)",
+  Y:"Circular Line (Yellow Line)"
+ };
+ return names[p]||"MRT";
+}
+
+function getStationTransfers(station){
+ const name=station.name;
+ const transfers=[];
+ const patterns=[
+  {regex:/Transfer:\s*([A-Z]+\d+A?)/gi,type:"transfer"},
+  {regex:/Out-of-station transfer to\s*([A-Z]+\d+A?)/gi,type:"out"},
+  {regex:/Transfer to Xinbeitou Branch/gi,type:"branch"},
+  {regex:/Transfer to Xiaobitan Branch/gi,type:"branch"},
+  {regex:/Splits to Luzhou Route/gi,type:"branch"}
+ ];
+
+ patterns.forEach(p=>{
+  let match;
+  while((match=p.regex.exec(name))!==null){
+   if(p.type==="transfer"||p.type==="out"){
+    transfers.push({
+     code:match[1],
+     type:p.type,
+     line:getLineNameFromCode(match[1])
+    });
+   }else{
+    transfers.push({
+     code:"",
+     type:"branch",
+     line:match[0]
+    });
+   }
+  }
+ });
+
+ return transfers;
+}
+
+function addListItem(list,text){
+ const li=document.createElement("li");
+ li.textContent=text;
+ list.appendChild(li);
+}
+
 function openStationDetail(station){
  const section=getStationLine(station);
  if(!section)return;
 
+ currentStation=station;
  previousScreen="main";
 
  $("mainScreen").classList.add("hidden");
@@ -661,26 +775,134 @@ function openStationDetail(station){
  $("detailLineName").textContent=section.name;
  $("detailLineDot").style.background=color;
 
- // Search only within the official Taipei Metro website.
- const officialSearch=
-  "https://www.google.com/search?q="+
-  encodeURIComponent('site:web.metro.taipei/pages2026/WebStation/ "'+cleanName+'" Taipei Metro');
-
- $("officialStationLink").href=officialSearch;
+ renderStationTransfers(station);
+ renderStationExits(station);
+ renderStationMap(station);
 
  window.scrollTo(0,0);
+}
+
+function renderStationTransfers(station){
+ const root=$("detailTransfers");
+ root.innerHTML="";
+
+ const transfers=getStationTransfers(station);
+
+ if(!transfers.length){
+  const p=document.createElement("p");
+  p.textContent="No transfer or branch connection is listed for this station in your tracker.";
+  root.appendChild(p);
+  return;
+ }
+
+ transfers.forEach(t=>{
+  const chip=document.createElement("div");
+  chip.className="transfer-chip";
+
+  if(t.type==="transfer"){
+   chip.textContent=`${t.code} · ${t.line}`;
+  }else if(t.type==="out"){
+   chip.textContent=`${t.code} · Out-of-station transfer`;
+  }else{
+   chip.textContent=t.line;
+  }
+
+  root.appendChild(chip);
+ });
+
+ const note=document.createElement("p");
+ note.style.marginTop="10px";
+ note.textContent="Transfer descriptions are based on the station information in your tracker. Check the official station map for the exact walking route and connection layout.";
+ root.appendChild(note);
+}
+
+function renderStationExits(station){
+ const root=$("detailExits");
+ root.innerHTML="";
+
+ const exits=stationExitInfo[station.code];
+
+ if(exits){
+  const intro=document.createElement("p");
+  intro.textContent="Exit information for Taipei Main Station:";
+  root.appendChild(intro);
+
+  const list=document.createElement("ul");
+  list.className="detail-list";
+  exits.forEach(text=>addListItem(list,text));
+  root.appendChild(list);
+  return;
+ }
+
+ const p=document.createElement("p");
+ p.textContent="Exit numbers, nearby streets, and landmarks have not yet been verified for this station. Use the official station map below to check the current exit layout and nearby locations.";
+ root.appendChild(p);
+}
+
+function renderStationMap(station){
+ const root=$("stationMapContent");
+ const description=$("stationMapDescription");
+ root.innerHTML="";
+
+ const data=officialStationMaps[station.code];
+
+ if(!data){
+  description.textContent="An official station map has not yet been added for this station. The station's official Taipei Metro information page is available below.";
+
+  const box=document.createElement("div");
+  box.className="map-unavailable";
+  box.textContent="No verified embedded map file is currently configured for "+cleanStationName(station.name)+". I have left the map area blank rather than showing a map that might belong to another station.";
+
+  const link=document.createElement("a");
+  link.className="official-map-button";
+  link.href="https://web.metro.taipei/pages/en/station/";
+  link.target="_blank";
+  link.rel="noopener noreferrer";
+  link.textContent="Visit Official Taipei Metro Website ↗";
+
+  root.append(box,link);
+  return;
+ }
+
+ description.textContent="Official Taipei Metro station information map for "+data.label+". The map is displayed inside this page.";
+
+ const frame=document.createElement("iframe");
+ frame.className="station-map-viewer";
+ frame.title="Official Taipei Metro station map for "+data.label;
+ frame.loading="lazy";
+ frame.src="https://web.metro.taipei/img/ALL/INFOPDF/"+data.mapId+".pdf";
+ frame.setAttribute("allow","fullscreen");
+
+ const actions=document.createElement("div");
+ actions.className="station-map-actions";
+
+ const pdfLink=document.createElement("a");
+ pdfLink.href=frame.src;
+ pdfLink.target="_blank";
+ pdfLink.rel="noopener noreferrer";
+ pdfLink.textContent="Open map PDF ↗";
+
+ const pageLink=document.createElement("a");
+ pageLink.className="secondary";
+ pageLink.href=data.page;
+ pageLink.target="_blank";
+ pageLink.rel="noopener noreferrer";
+ pageLink.textContent="Official station page ↗";
+
+ actions.append(pdfLink,pageLink);
+ root.append(frame,actions);
 }
 
 function closeStationDetail(){
  $("stationDetailScreen").classList.remove("visible");
  $("mainScreen").classList.remove("hidden");
+ currentStation=null;
  window.scrollTo(0,0);
 }
-
 $("backStationBtn").addEventListener("click",closeStationDetail);
 $("backStationBottomBtn").addEventListener("click",closeStationDetail);
 
-/* PDF Route Guide */
+/* PDF route guide */
 const routePages={
  "Wenhu Line (Brown Line - BR)":1,
  "Tamsui-Xinyi Line (Red Line - R)":2,
@@ -709,9 +931,7 @@ async function openGuide(page,lineName){
 
  $("guidePageLabel").textContent=
   (lineName||"MRT")+" — PDF page "+pageNumber+" — Loading…";
-
- $("openPdfSeparately").href=
-  "MRT%20Taipei%20Station.pdf#page="+pageNumber;
+ $("openPdfSeparately").href="MRT%20Taipei%20Station.pdf#page="+pageNumber;
 
  const canvas=$("guideCanvas");
  const context=canvas.getContext("2d");
@@ -720,19 +940,14 @@ async function openGuide(page,lineName){
   try{currentRenderTask.cancel();}catch(e){}
   currentRenderTask=null;
  }
-
  canvas.width=0;
  canvas.height=0;
 
  try{
   if(!currentPdf){
-   currentPdf=await pdfjsLib.getDocument(
-    "MRT%20Taipei%20Station.pdf"
-   ).promise;
+   currentPdf=await pdfjsLib.getDocument("MRT%20Taipei%20Station.pdf").promise;
   }
-
   if(requestNumber!==guideRequest)return;
-
   if(pageNumber<1||pageNumber>currentPdf.numPages){
    throw new Error("Requested PDF page does not exist.");
   }
@@ -751,30 +966,19 @@ async function openGuide(page,lineName){
   canvas.height=Math.floor(viewport.height*pixelRatio);
   canvas.style.width=viewport.width+"px";
   canvas.style.height=viewport.height+"px";
-
   context.setTransform(pixelRatio,0,0,pixelRatio,0,0);
 
-  currentRenderTask=pdfPage.render({
-   canvasContext:context,
-   viewport:viewport
-  });
-
+  currentRenderTask=pdfPage.render({canvasContext:context,viewport});
   await currentRenderTask.promise;
   currentRenderTask=null;
-
   if(requestNumber!==guideRequest)return;
 
-  $("guidePageLabel").textContent=
-   (lineName||"MRT")+" — PDF page "+pageNumber;
-
+  $("guidePageLabel").textContent=(lineName||"MRT")+" — PDF page "+pageNumber;
  }catch(error){
   if(error&&error.name==="RenderingCancelledException")return;
-
   console.error("PDF loading error:",error);
-
   if(requestNumber===guideRequest){
-   $("guidePageLabel").textContent=
-    "Could not load the PDF. Use the button below to open it.";
+   $("guidePageLabel").textContent="Could not load the PDF. Use the button below to open it.";
   }
  }
 }
@@ -825,9 +1029,7 @@ function updateStats(){
   route.className="route-link";
   route.type="button";
   route.textContent="📄 View Route";
-  route.addEventListener("click",()=>{
-   openGuide(routePages[section.name],section.name);
-  });
+  route.addEventListener("click",()=>openGuide(routePages[section.name],section.name));
 
   const barRow=document.createElement("div");
   barRow.className="line-stat-bar-row";
@@ -908,7 +1110,7 @@ function render(){
  if(!root.children.length)root.textContent="No matching stations.";
 }
 
-/* Network Diagram rendering */
+/* Network diagram */
 function renderDiagram(){
  const selector=$("diagramLineSelectors");
  if(!selector)return;
@@ -962,7 +1164,6 @@ function renderDiagram(){
   node.className="diagram-node"+(station.collected?" collected":"");
   node.style.borderColor=color;
   node.style.setProperty("--node-color",color);
-
   rail.appendChild(node);
 
   if(index<section.stations.length-1){
@@ -1000,13 +1201,13 @@ function renderDiagram(){
  });
 }
 
-/* Saving */
-async function save(){
- const data=allStations().map(s=>({
-  code:s.code,
-  collected:s.collected
- }));
+/* Saving and Firebase synchronization */
+let cloudReady=false;
+let applyingCloud=false;
+let unsubscribeCloud=null;
 
+async function save(){
+ const data=allStations().map(s=>({code:s.code,collected:s.collected}));
  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
 
  if(!auth.currentUser||!cloudReady||applyingCloud)return;
@@ -1019,7 +1220,6 @@ async function save(){
    stations,
    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   },{merge:true});
-
   $("syncStatus").textContent="☁️ Synced";
  }catch(error){
   $("syncStatus").textContent="Sync error: "+error.code+" — "+error.message;
@@ -1029,12 +1229,10 @@ async function save(){
 /* Search and filters */
 $("search").addEventListener("input",render);
 
-[["allBtn","all"],["missingBtn","missing"],["doneBtn","done"]]
-.forEach(([id,val])=>{
+[["allBtn","all"],["missingBtn","missing"],["doneBtn","done"]].forEach(([id,val])=>{
  $(id).addEventListener("click",()=>{
   filter=val;
-  document.querySelectorAll("#mainScreen .controls button")
-   .forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll("#mainScreen .controls button").forEach(b=>b.classList.remove("active"));
   $(id).classList.add("active");
   render();
  });
@@ -1053,19 +1251,13 @@ $("resetBtn").addEventListener("click",()=>{
 /* Export */
 $("exportBtn").addEventListener("click",()=>{
  const lines=["MRT STAMP COLLECTION",""];
-
  sections.forEach(s=>{
   lines.push(s.name);
-  s.stations.forEach(st=>
-   lines.push((st.collected?"✓":"◦")+" "+st.code+" - "+st.name)
-  );
+  s.stations.forEach(st=>lines.push((st.collected?"✓":"◦")+" "+st.code+" - "+st.name));
   lines.push("");
  });
 
- const blob=new Blob([lines.join("\n")],{
-  type:"text/plain;charset=utf-8"
- });
-
+ const blob=new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"});
  const url=URL.createObjectURL(blob);
  const a=document.createElement("a");
  a.href=url;
@@ -1077,12 +1269,10 @@ $("exportBtn").addEventListener("click",()=>{
 /* Screen navigation */
 function showMainScreen(){
  guideRequest++;
-
  if(currentRenderTask){
   try{currentRenderTask.cancel();}catch(e){}
   currentRenderTask=null;
  }
-
  $("mapScreen").classList.remove("visible");
  $("diagramScreen").classList.remove("visible");
  $("guideScreen").classList.remove("visible");
@@ -1099,7 +1289,6 @@ $("openMapBtn").addEventListener("click",()=>{
  $("mapScreen").classList.add("visible");
  window.scrollTo(0,0);
 });
-
 $("backBtn").addEventListener("click",showMainScreen);
 
 $("openDiagramBtn").addEventListener("click",()=>{
@@ -1111,7 +1300,6 @@ $("openDiagramBtn").addEventListener("click",()=>{
  renderDiagram();
  window.scrollTo(0,0);
 });
-
 $("backDiagramBtn").addEventListener("click",showMainScreen);
 $("backGuideBtn").addEventListener("click",showMainScreen);
 
@@ -1119,15 +1307,10 @@ $("backGuideBtn").addEventListener("click",showMainScreen);
 updateStats();
 render();
 
-let cloudReady=false;
-let applyingCloud=false;
-let unsubscribeCloud=null;
-
 /* Google sign-in */
 $("signInBtn").addEventListener("click",()=>{
  const provider=new firebase.auth.GoogleAuthProvider();
  provider.setCustomParameters({prompt:"select_account"});
-
  $("syncStatus").textContent="Opening Google sign-in…";
  $("signInBtn").disabled=true;
 
@@ -1166,34 +1349,27 @@ auth.onAuthStateChanged(async user=>{
 
   const snapshot=await Promise.race([
    ref.get({source:"server"}),
-   new Promise((_,reject)=>
-    setTimeout(()=>reject(new Error("Firestore timed out after 15 seconds")),15000)
-   )
+   new Promise((_,reject)=>setTimeout(()=>reject(new Error("Firestore timed out after 15 seconds")),15000))
   ]);
 
   if(!snapshot.exists){
    const stations={};
    allStations().forEach(s=>{stations[s.code]=s.collected;});
-
    await ref.set({
     stations,
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
    });
   }else{
    const saved=snapshot.data().stations||{};
-
    applyingCloud=true;
+
    allStations().forEach(s=>{
     if(typeof saved[s.code]==="boolean")s.collected=saved[s.code];
    });
 
-   localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(allStations().map(s=>({
-     code:s.code,
-     collected:s.collected
-    })))
-   );
+   localStorage.setItem(STORAGE_KEY,JSON.stringify(
+    allStations().map(s=>({code:s.code,collected:s.collected}))
+   ));
 
    updateStats();
    render();
@@ -1213,13 +1389,9 @@ auth.onAuthStateChanged(async user=>{
     if(typeof saved[s.code]==="boolean")s.collected=saved[s.code];
    });
 
-   localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(allStations().map(s=>({
-     code:s.code,
-     collected:s.collected
-    })))
-   );
+   localStorage.setItem(STORAGE_KEY,JSON.stringify(
+    allStations().map(s=>({code:s.code,collected:s.collected}))
+   ));
 
    updateStats();
    render();
