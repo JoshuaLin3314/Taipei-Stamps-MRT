@@ -148,38 +148,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
  font-size:11px;color:var(--muted);text-transform:uppercase;
  letter-spacing:.07em;margin-bottom:5px
 }
-.detail-info-panel{
- border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0
-}
-.detail-info-panel h3{font-size:16px;margin:0 0 12px}
-.detail-info-panel p{
- color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 10px
-}
-.detail-list{margin:0;padding-left:20px}
-.detail-list li{font-size:14px;line-height:1.55;margin:7px 0}
-.transfer-chip{
- display:inline-block;background:#eaf2ed;border:1px solid #d4e4d9;
- border-radius:9px;padding:7px 10px;margin:4px 5px 4px 0;
- font-size:13px;font-weight:700
-}
-.station-map-viewer{
- width:100%;height:520px;border:1px solid var(--line);
- border-radius:12px;background:#f2f4f2
-}
-.station-map-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.station-map-actions a{
- display:inline-block;text-decoration:none;background:#176b50;color:white;
- border-radius:10px;padding:11px 13px;font-size:13px;font-weight:700
-}
-.station-map-actions a.secondary{background:#eaf1ed;color:var(--ink)}
-.map-unavailable{
- padding:16px;background:#f5f7f3;border-radius:12px;
- color:var(--muted);font-size:13px;line-height:1.55
-}
-.station-detail-back{
- display:block;width:100%;margin-top:16px;
- background:#176b50;color:white;border:0;padding:15px
-}
 
 /* Digital stamp record */
 .stamp-record{
@@ -273,18 +241,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
  min-height:16px
 }
 
-.official-map-button{
- display:inline-block;
- text-decoration:none;
- background:#176b50;
- color:white;
- border-radius:10px;
- padding:11px 13px;
- font-size:13px;
- font-weight:700;
- margin-top:10px
-}
-
 /* PDF route guide */
 .guide-description{
  color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 14px
@@ -367,7 +323,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
  .station-detail-top{align-items:flex-start}
  .station-detail-top h2{font-size:17px}
  .station-detail-name{font-size:23px}
- .station-map-viewer{height:430px}
  .stamp-record-heading{align-items:flex-start;flex-direction:column}
 }
 </style>
@@ -741,7 +696,6 @@ try{
 
 let filter="all";
 let selectedDiagramLine=0;
-let previousScreen="main";
 let currentStation=null;
 let notesSaveTimer=null;
 let notesSaveVersion=0;
@@ -770,116 +724,6 @@ function getStationLine(station){
 
 function getStationByCode(code){
  return allStations().find(station=>station.code===code);
-}
-
-/*
- * Official Taipei Metro map PDFs.
- * These are deliberately limited to station maps whose PDF IDs
- * have been verified. Do not assume station codes are PDF IDs.
- */
-const officialStationMaps={
- "R10":{
-  mapId:"051",
-  page:"https://web.metro.taipei/pages/en/station/051",
-  label:"Taipei Main Station"
- },
- "BL12":{
-  mapId:"051",
-  page:"https://web.metro.taipei/pages/en/station/051",
-  label:"Taipei Main Station"
- },
- "R05":{
-  mapId:"011",
-  page:"https://web.metro.taipei/pages/en/station/011",
-  label:"Daan"
- },
- "BR09":{
-  mapId:"011",
-  page:"https://web.metro.taipei/pages/en/station/011",
-  label:"Daan"
- },
- "G03":{
-  mapId:"035",
-  page:"https://web.metro.taipei/pages/en/station/035",
-  label:"Qizhang"
- }
-};
-
-const stationExitInfo={
- "R10":[
-  "M1 — Near the north entrance of Taipei Main Station (Taiwan Railway).",
-  "M2 — Near No. 209, Section 1, Civic Boulevard, close to the Dr. Sun Yat-Sen Memorial House.",
-  "M3 — No. 45, Section 1, Zhongxiao West Road.",
-  "M4 — Near No. 38, Section 1, Zhongxiao West Road.",
-  "M5 — Near No. 66, Section 1, Zhongxiao West Road.",
-  "M6 — No. 38, Section 1, Zhongxiao West Road.",
-  "M7 — No. 33, Section 1, Zhongxiao West Road.",
-  "M8 — No. 13, Gongyuan Road."
- ],
- "BL12":[
-  "M1 — Near the north entrance of Taipei Main Station (Taiwan Railway).",
-  "M2 — Near No. 209, Section 1, Civic Boulevard, close to the Dr. Sun Yat-Sen Memorial House.",
-  "M3 — No. 45, Section 1, Zhongxiao West Road.",
-  "M4 — Near No. 38, Section 1, Zhongxiao West Road.",
-  "M5 — Near No. 66, Section 1, Zhongxiao West Road.",
-  "M6 — No. 38, Section 1, Zhongxiao West Road.",
-  "M7 — No. 33, Section 1, Zhongxiao West Road.",
-  "M8 — No. 13, Gongyuan Road."
- ]
-};
-
-function getLineNameFromCode(code){
- const prefix=code.match(/^[A-Z]+/);
- if(!prefix)return "MRT";
- const p=prefix[0];
- const names={
-  BR:"Wenhu Line (Brown Line)",
-  R:"Tamsui-Xinyi Line (Red Line)",
-  BL:"Bannan Line (Blue Line)",
-  G:"Songshan-Xindian Line (Green Line)",
-  O:"Zhonghe-Xinlu Line (Orange Line)",
-  Y:"Circular Line (Yellow Line)"
- };
- return names[p]||"MRT";
-}
-
-function getStationTransfers(station){
- const name=station.name;
- const transfers=[];
- const patterns=[
-  {regex:/Transfer:\s*([A-Z]+\d+A?)/gi,type:"transfer"},
-  {regex:/Out-of-station transfer to\s*([A-Z]+\d+A?)/gi,type:"out"},
-  {regex:/Transfer to Xinbeitou Branch/gi,type:"branch"},
-  {regex:/Transfer to Xiaobitan Branch/gi,type:"branch"},
-  {regex:/Splits to Luzhou Route/gi,type:"branch"}
- ];
-
- patterns.forEach(p=>{
-  let match;
-  while((match=p.regex.exec(name))!==null){
-   if(p.type==="transfer"||p.type==="out"){
-    transfers.push({
-     code:match[1],
-     type:p.type,
-     line:getLineNameFromCode(match[1])
-    });
-   }else{
-    transfers.push({
-     code:"",
-     type:"branch",
-     line:match[0]
-    });
-   }
-  }
- });
-
- return transfers;
-}
-
-function addListItem(list,text){
- const li=document.createElement("li");
- li.textContent=text;
- list.appendChild(li);
 }
 
 /* Collection status in the station detail screen */
@@ -967,7 +811,6 @@ function openStationDetail(station){
  if(!section)return;
 
  currentStation=station;
- previousScreen="main";
 
  $("mainScreen").classList.add("hidden");
  $("mapScreen").classList.remove("visible");
@@ -985,122 +828,8 @@ function openStationDetail(station){
 
  renderStampRecord(station);
  renderStationNotes(station);
- renderStationTransfers(station);
- renderStationExits(station);
- renderStationMap(station);
 
  window.scrollTo(0,0);
-}
-
-function renderStationTransfers(station){
- const root=$("detailTransfers");
- root.innerHTML="";
-
- const transfers=getStationTransfers(station);
-
- if(!transfers.length){
-  const p=document.createElement("p");
-  p.textContent="No transfer or branch connection is listed for this station in your tracker.";
-  root.appendChild(p);
-  return;
- }
-
- transfers.forEach(t=>{
-  const chip=document.createElement("div");
-  chip.className="transfer-chip";
-
-  if(t.type==="transfer"){
-   chip.textContent=`${t.code} · ${t.line}`;
-  }else if(t.type==="out"){
-   chip.textContent=`${t.code} · Out-of-station transfer`;
-  }else{
-   chip.textContent=t.line;
-  }
-
-  root.appendChild(chip);
- });
-
- const note=document.createElement("p");
- note.style.marginTop="10px";
- note.textContent="Transfer descriptions are based on the station information in your tracker. Check the official station map for the exact walking route and connection layout.";
- root.appendChild(note);
-}
-
-function renderStationExits(station){
- const root=$("detailExits");
- root.innerHTML="";
-
- const exits=stationExitInfo[station.code];
-
- if(exits){
-  const intro=document.createElement("p");
-  intro.textContent="Exit information for Taipei Main Station:";
-  root.appendChild(intro);
-
-  const list=document.createElement("ul");
-  list.className="detail-list";
-  exits.forEach(text=>addListItem(list,text));
-  root.appendChild(list);
-  return;
- }
-
- const p=document.createElement("p");
- p.textContent="Exit numbers, nearby streets, and landmarks have not yet been verified for this station. Use the official station map below to check the current exit layout and nearby locations.";
- root.appendChild(p);
-}
-
-function renderStationMap(station){
- const root=$("stationMapContent");
- const description=$("stationMapDescription");
- root.innerHTML="";
-
- const data=officialStationMaps[station.code];
-
- if(!data){
-  description.textContent="An official station map has not yet been added for this station. The station's official Taipei Metro information page is available below.";
-
-  const box=document.createElement("div");
-  box.className="map-unavailable";
-  box.textContent="No verified embedded map file is currently configured for "+cleanStationName(station.name)+". I have left the map area blank rather than showing a map that might belong to another station.";
-
-  const link=document.createElement("a");
-  link.className="official-map-button";
-  link.href="https://web.metro.taipei/pages/en/station/";
-  link.target="_blank";
-  link.rel="noopener noreferrer";
-  link.textContent="Visit Official Taipei Metro Website ↗";
-
-  root.append(box,link);
-  return;
- }
-
- description.textContent="Official Taipei Metro station information map for "+data.label+". The map is displayed inside this page.";
-
- const frame=document.createElement("iframe");
- frame.className="station-map-viewer";
- frame.title="Official Taipei Metro station map for "+data.label;
- frame.loading="lazy";
- frame.src="https://web.metro.taipei/img/ALL/INFOPDF/"+data.mapId+".pdf";
- frame.setAttribute("allow","fullscreen");
-
- const actions=document.createElement("div");
- actions.className="station-map-actions";
-
- const pdfLink=document.createElement("a");
- pdfLink.href=frame.src;
- pdfLink.target="_blank";
- pdfLink.rel="noopener noreferrer";
- pdfLink.textContent="Open map PDF ↗";
-
- const pageLink=document.createElement("a");
- pageLink.className="secondary";
- pageLink.href=data.page;
- pageLink.target="_blank";
- pageLink.rel="noopener noreferrer";
- pageLink.textContent="Official station page ↗";
-
- actions.append(pdfLink,pageLink);
- root.append(frame,actions);
 }
 
 function closeStationDetail(){
