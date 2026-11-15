@@ -181,6 +181,110 @@ button:disabled{opacity:.55;cursor:not-allowed}
  background:#176b50;color:white;border:0;padding:15px
 }
 
+/* Digital stamp record */
+.stamp-record{
+ border:1px solid var(--line);
+ border-radius:16px;
+ padding:17px;
+ margin:18px 0;
+ background:#fbfcfa
+}
+.stamp-record-heading{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+ margin-bottom:13px
+}
+.stamp-record-heading h3{
+ font-size:16px;
+ margin:0
+}
+.stamp-status{
+ display:inline-flex;
+ align-items:center;
+ gap:7px;
+ padding:9px 12px;
+ border-radius:20px;
+ background:#edf0ed;
+ color:#58675f;
+ font-size:12px;
+ font-weight:750
+}
+.stamp-status.collected{
+ background:#e2f2e8;
+ color:#176b50
+}
+.stamp-status-dot{
+ width:8px;
+ height:8px;
+ border-radius:50%;
+ background:#89958e
+}
+.stamp-status.collected .stamp-status-dot{
+ background:#176b50
+}
+.stamp-toggle{
+ width:100%;
+ background:#176b50;
+ color:white;
+ border:0;
+ padding:13px;
+ margin-top:4px;
+ font-size:14px
+}
+.stamp-toggle.not-collected{
+ background:#edf2ee;
+ color:var(--ink);
+ border:1px solid var(--line)
+}
+.notes-label{
+ display:block;
+ font-size:13px;
+ font-weight:750;
+ margin:17px 0 8px
+}
+.station-notes{
+ display:block;
+ width:100%;
+ min-height:125px;
+ resize:vertical;
+ border:1px solid var(--line);
+ border-radius:12px;
+ padding:12px;
+ color:var(--ink);
+ background:white;
+ font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+.station-notes:focus{
+ outline:2px solid #a8cdb9;
+ border-color:#176b50
+}
+.notes-help{
+ color:var(--muted);
+ font-size:11px;
+ line-height:1.5;
+ margin:7px 0 0
+}
+.notes-save-status{
+ font-size:11px;
+ color:var(--muted);
+ margin-top:8px;
+ min-height:16px
+}
+
+.official-map-button{
+ display:inline-block;
+ text-decoration:none;
+ background:#176b50;
+ color:white;
+ border-radius:10px;
+ padding:11px 13px;
+ font-size:13px;
+ font-weight:700;
+ margin-top:10px
+}
+
 /* PDF route guide */
 .guide-description{
  color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 14px
@@ -264,6 +368,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
  .station-detail-top h2{font-size:17px}
  .station-detail-name{font-size:23px}
  .station-map-viewer{height:430px}
+ .stamp-record-heading{align-items:flex-start;flex-direction:column}
 }
 </style>
 </head>
@@ -397,6 +502,33 @@ button:disabled{opacity:.55;cursor:not-allowed}
     <div class="station-detail-label">MRT line</div>
     <div class="station-line-name" id="detailLineName"></div>
    </div>
+  </div>
+
+  <!-- Digital stamp record -->
+  <div class="stamp-record">
+   <div class="stamp-record-heading">
+    <h3>🎟️ My Stamp Record</h3>
+    <div class="stamp-status" id="detailStampStatus">
+     <span class="stamp-status-dot"></span>
+     <span id="detailStampStatusText">Not collected</span>
+    </div>
+   </div>
+
+   <button class="stamp-toggle not-collected" id="detailStampToggle">
+    Mark as collected ✓
+   </button>
+
+   <label class="notes-label" for="stationNotes">📝 Personal Notes</label>
+   <textarea
+    id="stationNotes"
+    class="station-notes"
+    placeholder="Write a memory, comment, or reminder about this station..."
+    maxlength="3000"
+   ></textarea>
+   <div class="notes-help">
+    Your notes save automatically on this device and sync to your Google account when signed in.
+   </div>
+   <div class="notes-save-status" id="notesSaveStatus" aria-live="polite"></div>
   </div>
 
   <div class="detail-info-panel">
@@ -603,7 +735,11 @@ if(redLine){
 }
 
 const STORAGE_KEY="taipei-mrt-stamps-v1";
+const NOTES_STORAGE_KEY="taipei-mrt-station-notes-v1";
+
 let sections=JSON.parse(JSON.stringify(original));
+let stationNotes={};
+
 try{
  const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
  if(saved&&Array.isArray(saved)){
@@ -614,10 +750,20 @@ try{
  }
 }catch(e){}
 
+try{
+ const savedNotes=JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY));
+ if(savedNotes&&typeof savedNotes==="object"&&!Array.isArray(savedNotes)){
+  stationNotes=savedNotes;
+ }
+}catch(e){}
+
 let filter="all";
 let selectedDiagramLine=0;
 let previousScreen="main";
 let currentStation=null;
+let notesSaveTimer=null;
+let notesSaveVersion=0;
+
 const $=id=>document.getElementById(id);
 
 const lineColors={
@@ -638,6 +784,10 @@ function cleanStationName(name){
 
 function getStationLine(station){
  return sections.find(section=>section.stations.includes(station));
+}
+
+function getStationByCode(code){
+ return allStations().find(station=>station.code===code);
 }
 
 /*
@@ -673,10 +823,6 @@ const officialStationMaps={
  }
 };
 
-/*
- * Verified Taipei Main Station exit information.
- * The official map is also embedded below.
- */
 const stationExitInfo={
  "R10":[
   "M1 — Near the north entrance of Taipei Main Station (Taiwan Railway).",
@@ -754,6 +900,86 @@ function addListItem(list,text){
  list.appendChild(li);
 }
 
+/* Collection status in the station detail screen */
+function renderStampRecord(station){
+ const status=$("detailStampStatus");
+ const statusText=$("detailStampStatusText");
+ const toggle=$("detailStampToggle");
+
+ if(station.collected){
+  status.classList.add("collected");
+  statusText.textContent="Collected";
+  toggle.textContent="✓ Collected — tap to undo";
+  toggle.classList.remove("not-collected");
+ }else{
+  status.classList.remove("collected");
+  statusText.textContent="Not collected";
+  toggle.textContent="Mark as collected ✓";
+  toggle.classList.add("not-collected");
+ }
+
+ toggle.onclick=()=>{
+  station.collected=!station.collected;
+  save();
+  updateStats();
+  render();
+  renderStampRecord(station);
+  $("syncStatus").textContent=auth.currentUser?"Saving collection status…":"Saved on this device";
+ };
+}
+
+/* Personal notes */
+function renderStationNotes(station){
+ const textarea=$("stationNotes");
+ const status=$("notesSaveStatus");
+
+ textarea.value=stationNotes[station.code]||"";
+ status.textContent="";
+
+ textarea.oninput=()=>{
+  stationNotes[station.code]=textarea.value;
+  notesSaveVersion++;
+
+  try{
+   localStorage.setItem(NOTES_STORAGE_KEY,JSON.stringify(stationNotes));
+   status.textContent="Saved on this device";
+  }catch(error){
+   status.textContent="Could not save notes on this device";
+   console.error("Local notes save error:",error);
+  }
+
+  if(notesSaveTimer)clearTimeout(notesSaveTimer);
+
+  const version=notesSaveVersion;
+  notesSaveTimer=setTimeout(()=>{
+   saveNotesToCloud(version);
+  },600);
+ };
+}
+
+async function saveNotesToCloud(version){
+ if(!auth.currentUser||!cloudReady)return;
+
+ const uid=auth.currentUser.uid;
+ const notesToSave={...stationNotes};
+
+ try{
+  await db.collection("users").doc(uid).set({
+   notes:notesToSave,
+   notesUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true});
+
+  if(version===notesSaveVersion){
+   $("notesSaveStatus").textContent="✓ Saved and synced to your Google account";
+  }
+ }catch(error){
+  console.error("Cloud notes save error:",error);
+  if(version===notesSaveVersion){
+   $("notesSaveStatus").textContent="Saved on this device; cloud sync failed";
+  }
+ }
+}
+
 function openStationDetail(station){
  const section=getStationLine(station);
  if(!section)return;
@@ -775,6 +1001,8 @@ function openStationDetail(station){
  $("detailLineName").textContent=section.name;
  $("detailLineDot").style.background=color;
 
+ renderStampRecord(station);
+ renderStationNotes(station);
  renderStationTransfers(station);
  renderStationExits(station);
  renderStationMap(station);
@@ -1209,6 +1437,7 @@ let unsubscribeCloud=null;
 async function save(){
  const data=allStations().map(s=>({code:s.code,collected:s.collected}));
  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+ localStorage.setItem(NOTES_STORAGE_KEY,JSON.stringify(stationNotes));
 
  if(!auth.currentUser||!cloudReady||applyingCloud)return;
 
@@ -1218,6 +1447,7 @@ async function save(){
  try{
   await db.collection("users").doc(auth.currentUser.uid).set({
    stations,
+   notes:stationNotes,
    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   },{merge:true});
   $("syncStatus").textContent="☁️ Synced";
@@ -1238,19 +1468,25 @@ $("search").addEventListener("input",render);
  });
 });
 
-/* Reset */
+/* Reset checkmarks only; personal notes are preserved */
 $("resetBtn").addEventListener("click",()=>{
- if(confirm("Reset every station to the checkmarks from your original list?")){
+ if(confirm("Reset every station to the checkmarks from your original list? Your personal notes will be kept.")){
   sections=JSON.parse(JSON.stringify(original));
   save();
   updateStats();
   render();
+
+  if(currentStation){
+   currentStation=getStationByCode(currentStation.code);
+   if(currentStation)renderStampRecord(currentStation);
+  }
  }
 });
 
 /* Export */
 $("exportBtn").addEventListener("click",()=>{
  const lines=["MRT STAMP COLLECTION",""];
+
  sections.forEach(s=>{
   lines.push(s.name);
   s.stations.forEach(st=>lines.push((st.collected?"✓":"◦")+" "+st.code+" - "+st.name));
@@ -1355,24 +1591,43 @@ auth.onAuthStateChanged(async user=>{
   if(!snapshot.exists){
    const stations={};
    allStations().forEach(s=>{stations[s.code]=s.collected;});
+
    await ref.set({
     stations,
+    notes:stationNotes,
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
    });
   }else{
    const saved=snapshot.data().stations||{};
+   const savedNotes=snapshot.data().notes||{};
+
    applyingCloud=true;
 
    allStations().forEach(s=>{
     if(typeof saved[s.code]==="boolean")s.collected=saved[s.code];
    });
 
+   stationNotes={
+    ...stationNotes,
+    ...savedNotes
+   };
+
    localStorage.setItem(STORAGE_KEY,JSON.stringify(
     allStations().map(s=>({code:s.code,collected:s.collected}))
    ));
+   localStorage.setItem(NOTES_STORAGE_KEY,JSON.stringify(stationNotes));
 
    updateStats();
    render();
+
+   if(currentStation){
+    currentStation=getStationByCode(currentStation.code);
+    if(currentStation){
+     renderStampRecord(currentStation);
+     $("stationNotes").value=stationNotes[currentStation.code]||"";
+    }
+   }
+
    applyingCloud=false;
   }
 
@@ -1383,18 +1638,39 @@ auth.onAuthStateChanged(async user=>{
    if(!doc.exists||!cloudReady)return;
 
    const saved=doc.data().stations||{};
+   const savedNotes=doc.data().notes||{};
+
    applyingCloud=true;
 
    allStations().forEach(s=>{
     if(typeof saved[s.code]==="boolean")s.collected=saved[s.code];
    });
 
+   stationNotes={
+    ...stationNotes,
+    ...savedNotes
+   };
+
    localStorage.setItem(STORAGE_KEY,JSON.stringify(
     allStations().map(s=>({code:s.code,collected:s.collected}))
    ));
+   localStorage.setItem(NOTES_STORAGE_KEY,JSON.stringify(stationNotes));
 
    updateStats();
    render();
+
+   if(currentStation){
+    currentStation=getStationByCode(currentStation.code);
+    if(currentStation){
+     renderStampRecord(currentStation);
+
+     // Do not overwrite the notes field while the user is typing.
+     if(document.activeElement!==$("stationNotes")){
+      $("stationNotes").value=stationNotes[currentStation.code]||"";
+     }
+    }
+   }
+
    applyingCloud=false;
    $("syncStatus").textContent="☁️ Synced";
   },error=>{
