@@ -1,1111 +1,706 @@
 <!doctype html>
-
 <html lang="en">
-
 <head>
-
 <link rel="manifest" href="manifest.json">
-
 <meta name="apple-mobile-web-app-capable" content="yes">
-
 <meta name="apple-mobile-web-app-title" content="Taipei MRT Stamps">
-
 <link rel="apple-touch-icon" href="IMG_3002.jpeg">
-
 <meta charset="utf-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <meta name="theme-color" content="#123d36">
-
 <title>Taipei MRT Stamp Tracker</title>
 
 <style>
-
 :root{
-
  color-scheme:light;
-
  --ink:#17352f;
-
  --muted:#64756f;
-
  --paper:#f5f7f3;
-
  --card:#fff;
-
  --line:#dce5df;
-
  --green:#176b50
-
 }
-
 *{box-sizing:border-box}
-
 body{
-
- margin:0;
-
- background:var(--paper);
-
- color:var(--ink);
-
+ margin:0;background:var(--paper);color:var(--ink);
  font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
-
 }
-
 header{
-
- background:#123d36;
-
- color:white;
-
- padding:26px 18px 22px;
-
- text-align:center
-
+ background:#123d36;color:white;padding:26px 18px 22px;text-align:center
 }
-
 h1{font-size:25px;margin:0 0 5px}
-
 .sub{opacity:.82;font-size:13px}
-
 main{max-width:760px;margin:0 auto;padding:16px}
-
-.summary,.line-stats,.map-card{
-
- background:var(--card);
-
- border:1px solid var(--line);
-
- border-radius:18px;
-
- padding:18px;
-
- margin:14px 0;
-
+.summary,.line-stats,.map-card,.diagram-card{
+ background:var(--card);border:1px solid var(--line);
+ border-radius:18px;padding:18px;margin:14px 0;
  box-shadow:0 4px 16px #17352f0c
-
 }
-
 .summary{margin-top:-4px}
-
-.stats{
-
- display:flex;
-
- justify-content:space-around;
-
- text-align:center;
-
- gap:8px
-
-}
-
-.num{
-
- font-size:27px;
-
- font-weight:800;
-
- font-variant-numeric:tabular-nums
-
-}
-
+.stats{display:flex;justify-content:space-around;text-align:center;gap:8px}
+.num{font-size:27px;font-weight:800;font-variant-numeric:tabular-nums}
 .label{
-
- font-size:11px;
-
- color:var(--muted);
-
- text-transform:uppercase;
-
- letter-spacing:.06em
-
+ font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em
 }
-
 .bar{
-
- height:12px;
-
- background:#e7eee9;
-
- border-radius:20px;
-
- overflow:hidden;
-
- margin:16px 0 8px
-
+ height:12px;background:#e7eee9;border-radius:20px;overflow:hidden;margin:16px 0 8px
 }
-
 .fill{
-
- height:100%;
-
- width:0;
-
- background:var(--green);
-
- border-radius:20px;
-
- transition:width .2s
-
+ height:100%;width:0;background:var(--green);border-radius:20px;transition:width .2s
 }
-
-.progressline{
-
- text-align:center;
-
- font-size:14px;
-
- color:var(--muted)
-
-}
-
-.line-stats h2,.map-card h2{
-
- font-size:17px;
-
- margin:0 0 16px
-
-}
-
+.progressline{text-align:center;font-size:14px;color:var(--muted)}
+.line-stats h2,.map-card h2,.diagram-card h2{font-size:17px;margin:0 0 16px}
 .line-stat{margin:14px 0}
-
 .line-stat:last-child{margin-bottom:0}
-
 .line-stat-top{
-
- display:flex;
-
- justify-content:space-between;
-
- align-items:center;
-
- gap:10px;
-
- font-size:13px;
-
- margin-bottom:6px
-
+ display:flex;justify-content:space-between;align-items:center;gap:10px;
+ font-size:13px;margin-bottom:6px
 }
-
-.line-stat-count{
-
- color:var(--muted);
-
- font-variant-numeric:tabular-nums
-
-}
-
-.line-stat-bar-row{
-
- display:flex;
-
- align-items:center;
-
- gap:10px
-
-}
-
+.line-stat-count{color:var(--muted);font-variant-numeric:tabular-nums}
+.line-stat-bar-row{display:flex;align-items:center;gap:10px}
 .line-stat-track{
-
- flex:1;
-
- min-width:0;
-
- height:9px;
-
- background:#e7eee9;
-
- border-radius:20px;
-
- overflow:hidden
-
+ flex:1;min-width:0;height:9px;background:#e7eee9;border-radius:20px;overflow:hidden
 }
-
 .line-stat-fill{
-
- height:100%;
-
- width:0;
-
- background:var(--green);
-
- border-radius:20px;
-
- transition:width .25s
-
+ height:100%;width:0;background:var(--green);border-radius:20px;transition:width .25s
 }
-
 .route-link{
-
- color:var(--green);
-
- font-size:12px;
-
- font-weight:700;
-
- text-decoration:none;
-
- white-space:nowrap
-
+ color:var(--green);font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap
 }
-
 .route-link:hover{text-decoration:underline}
-
-.line-stat-percent{
-
- font-size:11px;
-
- color:var(--muted);
-
- margin-top:4px
-
-}
-
-.controls{
-
- display:flex;
-
- gap:8px;
-
- margin:16px 0;
-
- flex-wrap:wrap
-
-}
-
+.line-stat-percent{font-size:11px;color:var(--muted);margin-top:4px}
+.controls{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap}
 input[type=search]{
-
- flex:1;
-
- min-width:180px;
-
- padding:12px 14px;
-
- border:1px solid var(--line);
-
- border-radius:12px;
-
- font-size:16px;
-
- background:white
-
+ flex:1;min-width:180px;padding:12px 14px;border:1px solid var(--line);
+ border-radius:12px;font-size:16px;background:white
 }
-
 button{
-
- border:1px solid var(--line);
-
- background:white;
-
- color:var(--ink);
-
- padding:11px 13px;
-
- border-radius:12px;
-
- font-weight:650;
-
- font-size:14px;
-
- cursor:pointer
-
+ border:1px solid var(--line);background:white;color:var(--ink);
+ padding:11px 13px;border-radius:12px;font-weight:650;font-size:14px;cursor:pointer
 }
-
-button.active{
-
- background:#dceee5;
-
- border-color:#a8cdb9;
-
- color:#14573f
-
-}
-
+button.active{background:#dceee5;border-color:#a8cdb9;color:#14573f}
 .map-button{
-
- display:block;
-
- width:100%;
-
- background:#176b50;
-
- color:white;
-
- border:0;
-
- padding:16px;
-
- border-radius:14px;
-
- font-size:16px;
-
- font-weight:750;
-
- margin:16px 0
-
+ display:block;width:100%;background:#176b50;color:white;border:0;
+ padding:16px;border-radius:14px;font-size:16px;font-weight:750;margin:16px 0
 }
-
 .map-button:active{opacity:.85}
-
-.map-screen{display:none}
-
-.map-screen.visible{display:block}
-
+.map-screen,.diagram-screen{display:none}
+.map-screen.visible,.diagram-screen.visible{display:block}
 .main-screen.hidden{display:none}
-
 .map-top{
-
- display:flex;
-
- align-items:center;
-
- justify-content:space-between;
-
- gap:10px;
-
- margin-bottom:14px
-
+ display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px
 }
-
-.map-top h2{
-
- font-size:20px;
-
- margin:0
-
-}
-
-.back-button{
-
- background:#176b50;
-
- color:white;
-
- border:0;
-
- white-space:nowrap
-
-}
-
+.map-top h2{font-size:20px;margin:0}
+.back-button{background:#176b50;color:white;border:0;white-space:nowrap}
 .map-image{
-
- display:block;
-
- width:100%;
-
- height:auto;
-
- border-radius:12px;
-
- border:1px solid var(--line)
-
+ display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)
 }
-
-.map-note{
-
- color:var(--muted);
-
- font-size:13px;
-
- line-height:1.5;
-
- margin-top:12px
-
-}
-
+.map-note{color:var(--muted);font-size:13px;line-height:1.5;margin-top:12px}
 .section{
-
- background:var(--card);
-
- border:1px solid var(--line);
-
- border-radius:16px;
-
- margin:12px 0;
-
- overflow:hidden
-
+ background:var(--card);border:1px solid var(--line);
+ border-radius:16px;margin:12px 0;overflow:hidden
 }
-
 .section h2{
-
- font-size:16px;
-
- margin:0;
-
- padding:15px 14px;
-
- border-bottom:1px solid var(--line)
-
+ font-size:16px;margin:0;padding:15px 14px;border-bottom:1px solid var(--line)
 }
-
 .station{
-
- display:flex;
-
- align-items:flex-start;
-
- gap:11px;
-
- padding:12px 14px;
-
- border-bottom:1px solid #edf1ee;
-
- min-height:48px
-
+ display:flex;align-items:flex-start;gap:11px;padding:12px 14px;
+ border-bottom:1px solid #edf1ee;min-height:48px
 }
-
 .station:last-child{border-bottom:0}
-
 .station input{
-
- width:20px;
-
- height:20px;
-
- accent-color:var(--green);
-
- flex:none;
-
- margin:1px 0 0
-
+ width:20px;height:20px;accent-color:var(--green);flex:none;margin:1px 0 0
 }
+.station .details{flex:1;line-height:1.35}
+.code{font-weight:750;font-variant-numeric:tabular-nums}
+.station.done .details{color:#718078;text-decoration:line-through}
+.footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 8px 34px}
+#syncStatus{font-size:12px;color:var(--muted);align-self:center}
 
-.station .details{
-
- flex:1;
-
- line-height:1.35
-
+/* Network Diagram */
+.diagram-intro{
+ color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 15px
 }
-
-.code{
-
- font-weight:750;
-
- font-variant-numeric:tabular-nums
-
+.diagram-line-selectors{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:18px
 }
-
-.station.done .details{
-
- color:#718078;
-
- text-decoration:line-through
-
+.diagram-line-button{
+ display:flex;align-items:center;justify-content:center;gap:6px;
+ padding:10px 5px;font-size:12px
 }
-
-.footer{
-
- color:var(--muted);
-
- font-size:12px;
-
- text-align:center;
-
- padding:20px 8px 34px
-
+.diagram-line-button.active{background:#eaf1ed;border-color:#8eaa9b;color:var(--ink)}
+.diagram-line-dot{width:11px;height:11px;border-radius:50%;flex:none}
+.diagram-heading{
+ display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px
 }
-
-#syncStatus{
-
- font-size:12px;
-
- color:var(--muted);
-
- align-self:center
-
+.diagram-heading h3{font-size:16px;margin:0}
+.diagram-count{font-size:12px;color:var(--muted);white-space:nowrap}
+.diagram-progress-track{
+ height:9px;background:#e7eee9;border-radius:20px;overflow:hidden;margin-bottom:14px
 }
-
+.diagram-progress-fill{height:100%;width:0;border-radius:20px;transition:width .25s}
+.diagram-legend{
+ display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin:12px 0 18px
+}
+.legend-item{display:flex;align-items:center;gap:6px}
+.legend-dot{width:13px;height:13px;border-radius:50%;display:inline-block}
+.diagram-stations{padding:0 4px}
+.diagram-station{display:flex;min-height:53px;align-items:stretch}
+.diagram-rail{
+ width:27px;display:flex;flex-direction:column;align-items:center;flex:none
+}
+.diagram-node{
+ width:15px;height:15px;border-radius:50%;border:3px solid;
+ background:white;z-index:1;flex:none;margin-top:3px;
+ display:flex;align-items:center;justify-content:center;
+ color:white;font-size:9px;font-weight:900
+}
+.diagram-node.collected{background:var(--node-color);border-color:var(--node-color)}
+.diagram-node.collected::after{content:"✓"}
+.diagram-rail-line{width:4px;flex:1;min-height:30px}
+.diagram-station-info{
+ flex:1;display:flex;justify-content:space-between;gap:8px;
+ padding:0 0 13px 8px;line-height:1.3
+}
+.diagram-station-name{font-size:13px;font-weight:650}
+.diagram-station-code{font-size:11px;color:var(--muted);white-space:nowrap}
+.diagram-status{font-size:11px;color:var(--muted);white-space:nowrap}
+.diagram-status.collected{font-weight:700}
 @media(min-width:650px){
-
  main{padding:22px}
-
- .section{
-
-  display:inline-block;
-
-  width:calc(50% - 8px);
-
-  vertical-align:top;
-
-  margin:8px 3px
-
- }
-
+ .section{display:inline-block;width:calc(50% - 8px);vertical-align:top;margin:8px 3px}
  .section h2{min-height:54px}
-
+ .diagram-line-selectors{grid-template-columns:repeat(6,minmax(0,1fr))}
 }
-
 </style>
-
 </head>
 
 <body>
-
 <header>
-
  <h1>🚇 Taipei MRT Stamp Tracker</h1>
-
  <div class="sub">Your personal station-by-station collection</div>
-
 </header>
 
 <main>
-
 <div id="mainScreen" class="main-screen">
-
 <section class="summary" aria-live="polite">
-
  <div class="stats">
-
-  <div>
-
-   <div class="num" id="count">0</div>
-
-   <div class="label">Collected</div>
-
-  </div>
-
-  <div>
-
-   <div class="num" id="remaining">0</div>
-
-   <div class="label">Remaining</div>
-
-  </div>
-
-  <div>
-
-   <div class="num" id="percent">0%</div>
-
-   <div class="label">Completed</div>
-
-  </div>
-
+  <div><div class="num" id="count">0</div><div class="label">Collected</div></div>
+  <div><div class="num" id="remaining">0</div><div class="label">Remaining</div></div>
+  <div><div class="num" id="percent">0%</div><div class="label">Completed</div></div>
  </div>
-
  <div class="bar"><div class="fill" id="fill"></div></div>
-
  <div class="progressline" id="progress">0 of 0 stamps collected</div>
-
 </section>
 
 <section class="line-stats">
-
  <h2>🚇 Progress by MRT Line</h2>
-
  <div id="lineStats"></div>
-
 </section>
 
-<button class="map-button" id="openMapBtn">
-
- 🗺️ Taipei MRT Map
-
-</button>
+<button class="map-button" id="openMapBtn">🗺️ Taipei MRT Map</button>
+<button class="map-button" id="openDiagramBtn">🚉 MRT Network Diagram</button>
 
 <div class="controls">
-
  <button id="signInBtn">Sign in with Google</button>
-
  <span id="syncStatus">Not signed in</span>
-
 </div>
 
 <div class="controls">
-
- <input id="search" type="search"
-
-  placeholder="Search station or code…"
-
-  aria-label="Search stations">
-
+ <input id="search" type="search" placeholder="Search station or code…" aria-label="Search stations">
  <button id="allBtn" class="active">All</button>
-
  <button id="missingBtn">Missing</button>
-
  <button id="doneBtn">Collected</button>
-
 </div>
 
 <div id="lines"></div>
 
 <div class="controls">
-
  <button id="exportBtn">Export checklist (.txt)</button>
-
  <button id="resetBtn">Reset to original list</button>
-
 </div>
 
 <div class="footer">
-
  Progress is saved on this device and synced to your Google account when signed in.
-
 </div>
-
 </div>
 
 <div id="mapScreen" class="map-screen">
-
  <section class="map-card">
-
   <div class="map-top">
-
    <h2>🗺️ Taipei MRT Map</h2>
-
    <button class="back-button" id="backBtn">← Back to Main Screen</button>
-
   </div>
-
-  <img
-
-   class="map-image"
-
-   src="IMG_9049.jpeg"
-
-   alt="Taipei MRT system map"
-
-  >
-
+  <img class="map-image" src="IMG_9049.jpeg" alt="Taipei MRT system map">
   <div class="map-note">
-
    Taipei MRT route map. Use the Back to Main Screen button to return to your stamp collection.
-
   </div>
-
  </section>
-
 </div>
 
+<div id="diagramScreen" class="diagram-screen">
+ <section class="diagram-card">
+  <div class="map-top">
+   <h2>🚉 MRT Network Diagram</h2>
+   <button class="back-button" id="backDiagramBtn">← Back</button>
+  </div>
+  <p class="diagram-intro">
+   Choose an MRT line to see its stations in order. Your collected stamps are marked with a check.
+  </p>
+  <div id="diagramLineSelectors" class="diagram-line-selectors"></div>
+  <div class="diagram-heading">
+   <h3 id="diagramLineName"></h3>
+   <span class="diagram-count" id="diagramLineCount"></span>
+  </div>
+  <div class="diagram-progress-track">
+   <div id="diagramProgressFill" class="diagram-progress-fill"></div>
+  </div>
+  <div class="diagram-legend">
+   <span class="legend-item"><span class="legend-dot" style="background:#176b50;border:2px solid #176b50"></span> Collected</span>
+   <span class="legend-item"><span class="legend-dot" style="background:white;border:2px solid #64756f"></span> Not collected</span>
+  </div>
+  <div id="diagramStations" class="diagram-stations"></div>
+ </section>
+</div>
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <script>
-
 const firebaseConfig = {
-
  apiKey: "AIzaSyCBwFrckL4sp5HSuGdPbggS7uMGDe846DI",
-
  authDomain: "taipei-mrt-stamps.firebaseapp.com",
-
  projectId: "taipei-mrt-stamps",
-
  storageBucket: "taipei-mrt-stamps.firebasestorage.app",
-
  messagingSenderId: "220849883011",
-
- appId: "1:220849883011:web:c161dccb778b3b98d8b6"
-
+ appId: "1:849883011:web:c161dccb778b3b98d8b6"
 };
 
 firebase.initializeApp(firebaseConfig);
-
 const auth = firebase.auth();
-
 const db = firebase.firestore();
 
-const original = [{"name":"Wenhu Line (Brown Line - BR)","stations":[{"code":"BR01","name":"Taipei Zoo","collected":true},{"code":"BR02","name":"Muzha","collected":false},{"code":"BR03","name":"Wanfang Community","collected":false},{"code":"BR04","name":"Wanfang Hospital","collected":false},{"code":"BR05","name":"Xinhai","collected":false},{"code":"BR06","name":"Linguang","collected":false},{"code":"BR07","name":"Liuzhangli","collected":false},{"code":"BR08","name":"Technology Building","collected":false},{"code":"BR09","name":"Daan (Transfer: R05)","collected":false},{"code":"BR10","name":"Zhongxiao Fuxing (Transfer: BL15)","collected":true},{"code":"BR11","name":"Nanjing Fuxing (Transfer: G16)","collected":true},{"code":"BR12","name":"Zhongshan Junior High School","collected":false},{"code":"BR13","name":"Songshan Airport","collected":true},{"code":"BR14","name":"Dazhi","collected":false},{"code":"BR15","name":"Jiannan Road","collected":true},{"code":"BR16","name":"Xihu","collected":false},{"code":"BR17","name":"Gangqian","collected":false},{"code":"BR18","name":"Wende","collected":false},{"code":"BR19","name":"Neihu","collected":false},{"code":"BR20","name":"Dahu Park","collected":true},{"code":"BR21","name":"Huzhou","collected":false},{"code":"BR22","name":"Donghu","collected":false},{"code":"BR23","name":"Nangang Software Park","collected":false},{"code":"BR24","name":"Taipei Nangang Exhibition Center (Transfer: BL23)","collected":true}]},{"name":"Tamsui-Xinyi Line (Red Line - R)","stations":[{"code":"R28","name":"Tamsui","collected":true},{"code":"R27","name":"Hongshulin","collected":true},{"code":"R26","name":"Zhuwei","collected":false},{"code":"R25","name":"Guandu","collected":true},{"code":"R24","name":"Zhongyi","collected":false},{"code":"R23","name":"Fuxinggang","collected":false},{"code":"R22","name":"Beitou (Transfer to Xinbeitou Branch)","collected":true},{"code":"R22A","name":"Xinbeitou (Branch line)","collected":false},{"code":"R21","name":"Qiyan","collected":false},{"code":"R20","name":"Qilian","collected":false},{"code":"R19","name":"Shipai","collected":false},{"code":"R18","name":"Mingde","collected":false},{"code":"R17","name":"Zhishan","collected":false},{"code":"R16","name":"Shilin","collected":false},{"code":"R15","name":"Jiantan","collected":true},{"code":"R14","name":"Yuanshan","collected":true},{"code":"R13","name":"Minquan West Road (Transfer: O11)","collected":false},{"code":"R12","name":"Shuanglian","collected":false},{"code":"R11","name":"Zhongshan (Transfer: G14)","collected":true},{"code":"R10","name":"Taipei Main Station (Transfer: BL12)","collected":true},{"code":"R09","name":"NTU Hospital","collected":false},{"code":"R08","name":"Chiang Kai-shek Memorial Hall (Transfer: G10)","collected":true},{"code":"R07","name":"Dongmen (Transfer: O06)","collected":true},{"code":"R06","name":"Daan Park","collected":true},{"code":"R05","name":"Daan (Transfer: BR09)","collected":true},{"code":"R04","name":"Xinyi Anhe","collected":false},{"code":"R03","name":"Taipei 101/World Trade Center","collected":true},{"code":"R02","name":"Xiangshan","collected":true},{"code":"R01","name":"Guangci/Fengtian Temple","collected":false}]},{"name":"Bannan Line (Blue Line - BL)","stations":[{"code":"BL01","name":"Dingpu","collected":false},{"code":"BL02","name":"Yongning","collected":false},{"code":"BL03","name":"Tucheng","collected":false},{"code":"BL04","name":"Haishan","collected":false},{"code":"BL05","name":"Far Eastern Hospital","collected":false},{"code":"BL06","name":"Fuzhong","collected":false},{"code":"BL07","name":"Banqiao (Transfer: Y15)","collected":false},{"code":"BL08","name":"Xinpu","collected":false},{"code":"BL09","name":"Jiangzicui","collected":false},{"code":"BL10","name":"Longshan Temple","collected":false},{"code":"BL11","name":"Ximen (Transfer: G12)","collected":false},{"code":"BL12","name":"Taipei Main Station (Transfer: R10)","collected":false},{"code":"BL13","name":"Shandao Temple","collected":true},{"code":"BL14","name":"Zhongxiao Xinsheng (Transfer: O07)","collected":false},{"code":"BL15","name":"Zhongxiao Fuxing (Transfer: BR10)","collected":false},{"code":"BL16","name":"Zhongxiao Dunhua","collected":false},{"code":"BL17","name":"Sun Yat-sen Memorial Hall","collected":true},{"code":"BL18","name":"Taipei City Hall","collected":true},{"code":"BL19","name":"Yongchun","collected":false},{"code":"BL20","name":"Houshanpi","collected":false},{"code":"BL21","name":"Kunyang","collected":true},{"code":"BL22","name":"Nangang","collected":false},{"code":"BL23","name":"Taipei Nangang Exhibition Center (Transfer: BR24)","collected":false}]},{"name":"Songshan-Xindian Line (Green Line - G)","stations":[{"code":"G01","name":"Xindian","collected":true},{"code":"G02","name":"Xindian District Office","collected":false},{"code":"G03A","name":"Xiaobitan (Branch line)","collected":true},{"code":"G03","name":"Qizhang (Transfer to Xiaobitan Branch)","collected":true},{"code":"G04","name":"Dapinglin (Transfer: Y07)","collected":false},{"code":"G05","name":"Jingmei","collected":true},{"code":"G06","name":"Wanlong","collected":false},{"code":"G07","name":"Gongguan","collected":false},{"code":"G08","name":"Taipower Building","collected":true},{"code":"G09","name":"Guting (Transfer: O05)","collected":true},{"code":"G10","name":"Chiang Kai-shek Memorial Hall (Transfer: R08)","collected":false},{"code":"G11","name":"Xiaonanmen","collected":true},{"code":"G12","name":"Ximen (Transfer: BL11)","collected":false},{"code":"G13","name":"Beimen","collected":false},{"code":"G14","name":"Zhongshan (Transfer: R11)","collected":false},{"code":"G15","name":"Songjiang Nanjing (Transfer: O12)","collected":false},{"code":"G16","name":"Nanjing Fuxing (Transfer: BR11)","collected":false},{"code":"G17","name":"Taipei Arena","collected":false},{"code":"G18","name":"Nanjing Samin","collected":false},{"code":"G19","name":"Songshan","collected":true}]},{"name":"Zhonghe-Xinlu Line (Orange Line - O)","stations":[{"code":"O01","name":"Nanshijiao","collected":false},{"code":"O02","name":"Jingan (Transfer: Y11)","collected":false},{"code":"O03","name":"Yongan Market","collected":true},{"code":"O04","name":"Dingxi","collected":true},{"code":"O05","name":"Guting (Transfer: G09)","collected":false},{"code":"O06","name":"Dongmen (Transfer: R07)","collected":false},{"code":"O07","name":"Zhongxiao Xinsheng (Transfer: BL14)","collected":true},{"code":"O08","name":"Songjiang Nanjing (Transfer: G16)","collected":false},{"code":"O09","name":"Xingtian Temple","collected":false},{"code":"O10","name":"Zhongshan Elementary School","collected":false},{"code":"O11","name":"Minquan West Road (Transfer: R13)","collected":false},{"code":"O12","name":"Daqiaotou (Splits to Luzhou Route)","collected":false},{"code":"O13","name":"Taipei Bridge","collected":true},{"code":"O14","name":"Cailiao","collected":false},{"code":"O15","name":"Sanchong","collected":true},{"code":"O16","name":"Xianse Temple","collected":false},{"code":"O17","name":"Touqianzhuang (Transfer: Y18)","collected":false},{"code":"O18","name":"Xinzhuang","collected":false},{"code":"O19","name":"Fu Jen University","collected":false},{"code":"O20","name":"Danfeng","collected":false},{"code":"O21","name":"Huilong","collected":false},{"code":"O50","name":"Sanchong Elementary School","collected":false},{"code":"O51","name":"Sanhe Junior High School","collected":false},{"code":"O52","name":"St. Ignatius High School","collected":false},{"code":"O53","name":"Sanmin Senior High School","collected":false},{"code":"O54","name":"Luzhou","collected":false}]},{"name":"Circular Line (Yellow Line - Y)","stations":[{"code":"Y07","name":"Dapinglin (Transfer: G04)","collected":false},{"code":"Y08","name":"Shisizhang","collected":false},{"code":"Y09","name":"Xiulang Bridge","collected":false},{"code":"Y10","name":"Jingping","collected":false},{"code":"Y11","name":"Zhonghe","collected":false},{"code":"Y12","name":"Qiaohe","collected":false},{"code":"Y13","name":"Zhongyuan","collected":false},{"code":"Y14","name":"Banxin","collected":false},{"code":"Y15","name":"Banqiao (Out-of-station transfer to BL07)","collected":false},{"code":"Y17","name":"Xinpu Minsheng (Out-of-station transfer to BL08)","collected":false},{"code":"Y18","name":"Touqianzhuang (Transfer: O17)","collected":false},{"code":"Y19","name":"Xingfu","collected":false},{"code":"Y20","name":"New Taipei Industrial Park","collected":false}]}];
+const original = [
+{"name":"Wenhu Line (Brown Line - BR)","stations":[
+{"code":"BR01","name":"Taipei Zoo","collected":true},
+{"code":"BR02","name":"Muzha","collected":false},
+{"code":"BR03","name":"Wanfang Community","collected":false},
+{"code":"BR04","name":"Wanfang Hospital","collected":false},
+{"code":"BR05","name":"Xinhai","collected":false},
+{"code":"BR06","name":"Linguang","collected":false},
+{"code":"BR07","name":"Liuzhangli","collected":false},
+{"code":"BR08","name":"Technology Building","collected":false},
+{"code":"BR09","name":"Daan (Transfer: R05)","collected":false},
+{"code":"BR10","name":"Zhongxiao Fuxing (Transfer: BL15)","collected":true},
+{"code":"BR11","name":"Nanjing Fuxing (Transfer: G16)","collected":true},
+{"code":"BR12","name":"Zhongshan Junior High School","collected":false},
+{"code":"BR13","name":"Songshan Airport","collected":true},
+{"code":"BR14","name":"Dazhi","collected":false},
+{"code":"BR15","name":"Jiannan Road","collected":true},
+{"code":"BR16","name":"Xihu","collected":false},
+{"code":"BR17","name":"Gangqian","collected":false},
+{"code":"BR18","name":"Wende","collected":false},
+{"code":"BR19","name":"Neihu","collected":false},
+{"code":"BR20","name":"Dahu Park","collected":true},
+{"code":"BR21","name":"Huzhou","collected":false},
+{"code":"BR22","name":"Donghu","collected":false},
+{"code":"BR23","name":"Nangang Software Park","collected":false},
+{"code":"BR24","name":"Taipei Nangang Exhibition Center (Transfer: BL23)","collected":true}
+]},
+{"name":"Tamsui-Xinyi Line (Red Line - R)","stations":[
+{"code":"R28","name":"Tamsui","collected":true},
+{"code":"R27","name":"Hongshulin","collected":true},
+{"code":"R26","name":"Zhuwei","collected":false},
+{"code":"R25","name":"Guandu","collected":true},
+{"code":"R24","name":"Zhongyi","collected":false},
+{"code":"R23","name":"Fuxinggang","collected":false},
+{"code":"R22","name":"Beitou (Transfer to Xinbeitou Branch)","collected":true},
+{"code":"R22A","name":"Xinbeitou (Branch line)","collected":false},
+{"code":"R21","name":"Qiyan","collected":false},
+{"code":"R20","name":"Qilian","collected":false},
+{"code":"R19","name":"Shipai","collected":false},
+{"code":"R18","name":"Mingde","collected":false},
+{"code":"R17","name":"Zhishan","collected":false},
+{"code":"R16","name":"Shilin","collected":false},
+{"code":"R15","name":"Jiantan","collected":true},
+{"code":"R14","name":"Yuanshan","collected":true},
+{"code":"R13","name":"Minquan West Road (Transfer: O11)","collected":false},
+{"code":"R12","name":"Shuanglian","collected":false},
+{"code":"R11","name":"Zhongshan (Transfer: G14)","collected":true},
+{"code":"R10","name":"Taipei Main Station (Transfer: BL12)","collected":true},
+{"code":"R09","name":"NTU Hospital","collected":false},
+{"code":"R08","name":"Chiang Kai-shek Memorial Hall (Transfer: G10)","collected":true},
+{"code":"R07","name":"Dongmen (Transfer: O06)","collected":true},
+{"code":"R06","name":"Daan Park","collected":true},
+{"code":"R05","name":"Daan (Transfer: BR09)","collected":true},
+{"code":"R04","name":"Xinyi Anhe","collected":false},
+{"code":"R03","name":"Taipei 101/World Trade Center","collected":true},
+{"code":"R02","name":"Xiangshan","collected":true},
+{"code":"R01","name":"Guangci/Fengtian Temple","collected":false}
+]},
+{"name":"Bannan Line (Blue Line - BL)","stations":[
+{"code":"BL01","name":"Dingpu","collected":false},
+{"code":"BL02","name":"Yongning","collected":false},
+{"code":"BL03","name":"Tucheng","collected":false},
+{"code":"BL04","name":"Haishan","collected":false},
+{"code":"BL05","name":"Far Eastern Hospital","collected":false},
+{"code":"BL06","name":"Fuzhong","collected":false},
+{"code":"BL07","name":"Banqiao (Transfer: Y15)","collected":false},
+{"code":"BL08","name":"Xinpu","collected":false},
+{"code":"BL09","name":"Jiangzicui","collected":false},
+{"code":"BL10","name":"Longshan Temple","collected":false},
+{"code":"BL11","name":"Ximen (Transfer: G12)","collected":false},
+{"code":"BL12","name":"Taipei Main Station (Transfer: R10)","collected":false},
+{"code":"BL13","name":"Shandao Temple","collected":true},
+{"code":"BL14","name":"Zhongxiao Xinsheng (Transfer: O07)","collected":false},
+{"code":"BL15","name":"Zhongxiao Fuxing (Transfer: BR10)","collected":false},
+{"code":"BL16","name":"Zhongxiao Dunhua","collected":false},
+{"code":"BL17","name":"Sun Yat-sen Memorial Hall","collected":true},
+{"code":"BL18","name":"Taipei City Hall","collected":true},
+{"code":"BL19","name":"Yongchun","collected":false},
+{"code":"BL20","name":"Houshanpi","collected":false},
+{"code":"BL21","name":"Kunyang","collected":true},
+{"code":"BL22","name":"Nangang","collected":false},
+{"code":"BL23","name":"Taipei Nangang Exhibition Center (Transfer: BR24)","collected":false}
+]},
+{"name":"Songshan-Xindian Line (Green Line - G)","stations":[
+{"code":"G01","name":"Xindian","collected":true},
+{"code":"G02","name":"Xindian District Office","collected":false},
+{"code":"G03A","name":"Xiaobitan (Branch line)","collected":true},
+{"code":"G03","name":"Qizhang (Transfer to Xiaobitan Branch)","collected":true},
+{"code":"G04","name":"Dapinglin (Transfer: Y07)","collected":false},
+{"code":"G05","name":"Jingmei","collected":true},
+{"code":"G06","name":"Wanlong","collected":false},
+{"code":"G07","name":"Gongguan","collected":false},
+{"code":"G08","name":"Taipower Building","collected":true},
+{"code":"G09","name":"Guting (Transfer: O05)","collected":true},
+{"code":"G10","name":"Chiang Kai-shek Memorial Hall (Transfer: R08)","collected":false},
+{"code":"G11","name":"Xiaonanmen","collected":true},
+{"code":"G12","name":"Ximen (Transfer: BL11)","collected":false},
+{"code":"G13","name":"Beimen","collected":false},
+{"code":"G14","name":"Zhongshan (Transfer: R11)","collected":false},
+{"code":"G15","name":"Songjiang Nanjing (Transfer: O12)","collected":false},
+{"code":"G16","name":"Nanjing Fuxing (Transfer: BR11)","collected":false},
+{"code":"G17","name":"Taipei Arena","collected":false},
+{"code":"G18","name":"Nanjing Samin","collected":false},
+{"code":"G19","name":"Songshan","collected":true}
+]},
+{"name":"Zhonghe-Xinlu Line (Orange Line - O)","stations":[
+{"code":"O01","name":"Nanshijiao","collected":false},
+{"code":"O02","name":"Jingan (Transfer: Y11)","collected":false},
+{"code":"O03","name":"Yongan Market","collected":true},
+{"code":"O04","name":"Dingxi","collected":true},
+{"code":"O05","name":"Guting (Transfer: G09)","collected":false},
+{"code":"O06","name":"Dongmen (Transfer: R07)","collected":false},
+{"code":"O07","name":"Zhongxiao Xinsheng (Transfer: BL14)","collected":true},
+{"code":"O08","name":"Songjiang Nanjing (Transfer: G16)","collected":false},
+{"code":"O09","name":"Xingtian Temple","collected":false},
+{"code":"O10","name":"Zhongshan Elementary School","collected":false},
+{"code":"O11","name":"Minquan West Road (Transfer: R13)","collected":false},
+{"code":"O12","name":"Daqiaotou (Splits to Luzhou Route)","collected":false},
+{"code":"O13","name":"Taipei Bridge","collected":true},
+{"code":"O14","name":"Cailiao","collected":false},
+{"code":"O15","name":"Sanchong","collected":true},
+{"code":"O16","name":"Xianse Temple","collected":false},
+{"code":"O17","name":"Touqianzhuang (Transfer: Y18)","collected":false},
+{"code":"O18","name":"Xinzhuang","collected":false},
+{"code":"O19","name":"Fu Jen University","collected":false},
+{"code":"O20","name":"Danfeng","collected":false},
+{"code":"O21","name":"Huilong","collected":false},
+{"code":"O50","name":"Sanchong Elementary School","collected":false},
+{"code":"O51","name":"Sanhe Junior High School","collected":false},
+{"code":"O52","name":"St. Ignatius High School","collected":false},
+{"code":"O53","name":"Sanmin Senior High School","collected":false},
+{"code":"O54","name":"Luzhou","collected":false}
+]},
+{"name":"Circular Line (Yellow Line - Y)","stations":[
+{"code":"Y07","name":"Dapinglin (Transfer: G04)","collected":false},
+{"code":"Y08","name":"Shisizhang","collected":false},
+{"code":"Y09","name":"Xiulang Bridge","collected":false},
+{"code":"Y10","name":"Jingping","collected":false},
+{"code":"Y11","name":"Zhonghe","collected":false},
+{"code":"Y12","name":"Qiaohe","collected":false},
+{"code":"Y13","name":"Zhongyuan","collected":false},
+{"code":"Y14","name":"Banxin","collected":false},
+{"code":"Y15","name":"Banqiao (Out-of-station transfer to BL07)","collected":false},
+{"code":"Y17","name":"Xinpu Minsheng (Out-of-station transfer to BL08)","collected":false},
+{"code":"Y18","name":"Touqianzhuang (Transfer: O17)","collected":false},
+{"code":"Y19","name":"Xingfu","collected":false},
+{"code":"Y20","name":"New Taipei Industrial Park","collected":false}
+]}
+];
 
-// Preserve the Red Line order.
-
+// Preserve the Red Line ordering from the original tracker.
 const redLine=original.find(s=>s.name.startsWith("Tamsui-Xinyi Line"));
-
 if(redLine){
-
  redLine.stations.sort((a,b)=>{
-
   const na=Number(a.code.match(/^R(\d+)/)[1]);
-
   const nb=Number(b.code.match(/^R(\d+)/)[1]);
-
   return na-nb;
-
  });
-
 }
 
 const STORAGE_KEY="taipei-mrt-stamps-v1";
-
 let sections=JSON.parse(JSON.stringify(original));
-
 try{
-
  const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
-
  if(saved&&Array.isArray(saved)){
-
   const map=new Map(saved.map(x=>[x.code,!!x.collected]));
-
   sections.forEach(s=>s.stations.forEach(st=>{
-
    if(map.has(st.code))st.collected=map.get(st.code);
-
   }));
-
  }
-
 }catch(e){}
 
 let filter="all";
-
+let selectedDiagramLine=0;
 const $=id=>document.getElementById(id);
 
+const lineColors={
+ "Wenhu Line (Brown Line - BR)":"#B68ACB",
+ "Tamsui-Xinyi Line (Red Line - R)":"#D94B4B",
+ "Bannan Line (Blue Line - BL)":"#0077C8",
+ "Songshan-Xindian Line (Green Line - G)":"#008B55",
+ "Zhonghe-Xinlu Line (Orange Line - O)":"#F39A24",
+ "Circular Line (Yellow Line - Y)":"#D4B900"
+};
+
+const shortLineNames=[
+ "Brown","Red","Blue","Green","Orange","Yellow"
+];
+
 function allStations(){
-
  return sections.flatMap(s=>s.stations);
-
 }
 
 function updateStats(){
-
  const a=allStations();
-
  const done=a.filter(s=>s.collected).length;
-
  const pct=a.length?done/a.length*100:0;
 
  $("count").textContent=done;
-
  $("remaining").textContent=a.length-done;
-
  $("percent").textContent=pct.toFixed(1)+"%";
-
  $("fill").style.width=pct+"%";
-
  $("progress").textContent=`${done} of ${a.length} stamps collected`;
 
  const statsRoot=$("lineStats");
-
  statsRoot.innerHTML="";
 
  const routePages={
-
   "Wenhu Line (Brown Line - BR)":1,
-
   "Tamsui-Xinyi Line (Red Line - R)":2,
-
   "Bannan Line (Blue Line - BL)":5,
-
   "Songshan-Xindian Line (Green Line - G)":3,
-
   "Zhonghe-Xinlu Line (Orange Line - O)":4,
-
   "Circular Line (Yellow Line - Y)":6
-
  };
 
  sections.forEach(section=>{
-
   const stations=section.stations;
-
   const collected=stations.filter(s=>s.collected).length;
-
   const total=stations.length;
-
   const linePct=total?collected/total*100:0;
 
   const item=document.createElement("div");
-
   item.className="line-stat";
 
   const top=document.createElement("div");
-
   top.className="line-stat-top";
 
   const name=document.createElement("strong");
-
   name.textContent=section.name;
 
   const count=document.createElement("span");
-
   count.className="line-stat-count";
-
   count.textContent=`${collected}/${total}`;
-
   top.append(name,count);
 
   const track=document.createElement("div");
-
   track.className="line-stat-track";
 
   const fill=document.createElement("div");
-
   fill.className="line-stat-fill";
-
   fill.style.width=linePct+"%";
-
   track.appendChild(fill);
 
   const route=document.createElement("a");
-
   route.className="route-link";
-
   route.textContent="📄 View Route";
-
   route.href="MRT%20Taipei%20Station.pdf#page="+routePages[section.name];
-
   route.target="_blank";
-
   route.rel="noopener";
 
   const barRow=document.createElement("div");
-
   barRow.className="line-stat-bar-row";
-
   barRow.append(track,route);
 
   const percent=document.createElement("div");
-
   percent.className="line-stat-percent";
-
   percent.textContent=linePct.toFixed(1)+"% collected";
 
   item.append(top,barRow,percent);
-
   statsRoot.appendChild(item);
-
  });
 
+ renderDiagram();
 }
 
 function render(){
-
  const q=$("search").value.trim().toLowerCase();
-
  const root=$("lines");
-
  root.innerHTML="";
 
  sections.forEach(section=>{
-
   const shown=section.stations.filter(st=>{
-
    const matches=(st.code+" "+st.name).toLowerCase().includes(q);
-
    const matchesFilter=filter==="all"||
-
     (filter==="done"&&st.collected)||
-
     (filter==="missing"&&!st.collected);
-
    return matches&&matchesFilter;
-
   });
 
   if(!shown.length)return;
 
   const box=document.createElement("section");
-
   box.className="section";
 
   const h=document.createElement("h2");
-
   h.textContent=section.name;
-
   box.appendChild(h);
 
   shown.forEach(st=>{
-
    const label=document.createElement("label");
-
    label.className="station"+(st.collected?" done":"");
 
    const cb=document.createElement("input");
-
    cb.type="checkbox";
-
    cb.checked=st.collected;
-
    cb.setAttribute("aria-label",`Collected ${st.code} ${st.name}`);
 
    cb.addEventListener("change",()=>{
-
     st.collected=cb.checked;
-
     save();
-
     updateStats();
-
     render();
-
    });
 
    const details=document.createElement("span");
-
    details.className="details";
 
    const code=document.createElement("span");
-
    code.className="code";
-
    code.textContent=st.code+" — ";
 
    details.appendChild(code);
-
    details.appendChild(document.createTextNode(st.name));
-
    label.append(cb,details);
-
    box.appendChild(label);
-
   });
 
   root.appendChild(box);
-
  });
 
- if(!root.children.length){
-
-  root.textContent="No matching stations.";
-
- }
-
+ if(!root.children.length)root.textContent="No matching stations.";
 }
 
-function save(){
+/* Network Diagram rendering */
+function renderDiagram(){
+ const selector=$("diagramLineSelectors");
+ if(!selector)return;
 
- localStorage.setItem(
+ selector.innerHTML="";
 
-  STORAGE_KEY,
+ sections.forEach((section,index)=>{
+  const color=lineColors[section.name]||"#176b50";
+  const button=document.createElement("button");
+  button.className="diagram-line-button"+(index===selectedDiagramLine?" active":"");
 
-  JSON.stringify(allStations().map(s=>({
+  const dot=document.createElement("span");
+  dot.className="diagram-line-dot";
+  dot.style.background=color;
 
-   code:s.code,
+  const label=document.createElement("span");
+  label.textContent=shortLineNames[index];
 
-   collected:s.collected
+  button.append(dot,label);
+  button.addEventListener("click",()=>{
+   selectedDiagramLine=index;
+   renderDiagram();
+  });
+  selector.appendChild(button);
+ });
 
-  })))
+ const section=sections[selectedDiagramLine];
+ if(!section)return;
 
- );
+ const color=lineColors[section.name]||"#176b50";
+ const collected=section.stations.filter(s=>s.collected).length;
+ const total=section.stations.length;
+ const pct=total?collected/total*100:0;
 
+ $("diagramLineName").textContent=section.name;
+ $("diagramLineCount").textContent=`${collected} / ${total} collected`;
+ $("diagramProgressFill").style.width=pct+"%";
+ $("diagramProgressFill").style.background=color;
+
+ const root=$("diagramStations");
+ root.innerHTML="";
+
+ section.stations.forEach((station,index)=>{
+  const row=document.createElement("div");
+  row.className="diagram-station";
+
+  const rail=document.createElement("div");
+  rail.className="diagram-rail";
+
+  const node=document.createElement("div");
+  node.className="diagram-node"+(station.collected?" collected":"");
+  node.style.borderColor=color;
+  node.style.setProperty("--node-color",color);
+
+  rail.appendChild(node);
+
+  if(index<section.stations.length-1){
+   const railLine=document.createElement("div");
+   railLine.className="diagram-rail-line";
+   railLine.style.background=color;
+   rail.appendChild(railLine);
+  }
+
+  const info=document.createElement("div");
+  info.className="diagram-station-info";
+
+  const stationText=document.createElement("div");
+
+  const stationName=document.createElement("div");
+  stationName.className="diagram-station-name";
+  stationName.textContent=station.name;
+
+  const stationCode=document.createElement("div");
+  stationCode.className="diagram-station-code";
+  stationCode.textContent=station.code;
+
+  stationText.append(stationName,stationCode);
+
+  const status=document.createElement("span");
+  status.className="diagram-status"+(station.collected?" collected":"");
+  status.textContent=station.collected?"✓ Collected":"Not collected";
+  if(station.collected)status.style.color=color;
+
+  info.append(stationText,status);
+  row.append(rail,info);
+  root.appendChild(row);
+ });
 }
 
-$("search").addEventListener("input",render);
-
-[["allBtn","all"],["missingBtn","missing"],["doneBtn","done"]]
-
-.forEach(([id,val])=>{
-
- $(id).addEventListener("click",()=>{
-
-  filter=val;
-
-  document.querySelectorAll(".controls button")
-
-   .forEach(b=>b.classList.remove("active"));
-
-  $(id).classList.add("active");
-
-  render();
-
- });
-
-});
-
-$("resetBtn").addEventListener("click",()=>{
-
- if(confirm("Reset every station to the checkmarks from your original list?")){
-
-  sections=JSON.parse(JSON.stringify(original));
-
-  save();
-
-  updateStats();
-
-  render();
-
- }
-
-});
-
-$("exportBtn").addEventListener("click",()=>{
-
- const lines=["MRT STAMP COLLECTION",""];
-
- sections.forEach(s=>{
-
-  lines.push(s.name);
-
-  s.stations.forEach(st=>
-
-   lines.push((st.collected?"✓":"◦")+" "+st.code+" - "+st.name)
-
-  );
-
-  lines.push("");
-
- });
-
- const blob=new Blob([lines.join("\n")],{
-
-  type:"text/plain;charset=utf-8"
-
- });
-
- const url=URL.createObjectURL(blob);
-
- const a=document.createElement("a");
-
- a.href=url;
-
- a.download="Taipei-MRT-stamp-checklist.txt";
-
- a.click();
-
- URL.revokeObjectURL(url);
-
-});
-
-// Map screen navigation.
-
-$("openMapBtn").addEventListener("click",()=>{
-
- $("mainScreen").classList.add("hidden");
-
- $("mapScreen").classList.add("visible");
-
- window.scrollTo(0,0);
-
-});
-
-$("backBtn").addEventListener("click",()=>{
-
- $("mapScreen").classList.remove("visible");
-
- $("mainScreen").classList.remove("hidden");
-
- window.scrollTo(0,0);
-
-});
-
-updateStats();
-
-render();
-
-let cloudReady=false;
-
-let applyingCloud=false;
-
-let unsubscribeCloud=null;
-
+/* Saving */
 async function save(){
-
  const data=allStations().map(s=>({
-
   code:s.code,
-
   collected:s.collected
-
  }));
 
  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
@@ -1113,241 +708,214 @@ async function save(){
  if(!auth.currentUser||!cloudReady||applyingCloud)return;
 
  const stations={};
-
- data.forEach(s=>{
-
-  stations[s.code]=s.collected;
-
- });
+ data.forEach(s=>{stations[s.code]=s.collected;});
 
  try{
-
   await db.collection("users").doc(auth.currentUser.uid).set({
-
    stations,
-
    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-
   },{merge:true});
 
   $("syncStatus").textContent="☁️ Synced";
-
  }catch(error){
-
-  $("syncStatus").textContent=
-
-   "Sync error: "+error.code+" — "+error.message;
-
+  $("syncStatus").textContent="Sync error: "+error.code+" — "+error.message;
  }
-
 }
 
-$("signInBtn").addEventListener("click",()=>{
+/* Search and filters */
+$("search").addEventListener("input",render);
 
- const provider=new firebase.auth.GoogleAuthProvider();
-
- provider.setCustomParameters({
-
-  prompt:"select_account"
-
+[["allBtn","all"],["missingBtn","missing"],["doneBtn","done"]]
+.forEach(([id,val])=>{
+ $(id).addEventListener("click",()=>{
+  filter=val;
+  document.querySelectorAll("#mainScreen .controls button")
+   .forEach(b=>b.classList.remove("active"));
+  $(id).classList.add("active");
+  render();
  });
-
- $("syncStatus").textContent="Opening Google sign-in…";
-
- $("signInBtn").disabled=true;
-
- auth.signInWithPopup(provider)
-
- .catch(error=>{
-
-  $("syncStatus").textContent=
-
-   "Sign-in error: "+error.code+" — "+error.message;
-
-  $("signInBtn").disabled=false;
-
-  console.error("Google sign-in error:",error);
-
-  alert(error.code+": "+error.message);
-
- });
-
 });
 
-auth.onAuthStateChanged(async user=>{
+/* Reset */
+$("resetBtn").addEventListener("click",()=>{
+ if(confirm("Reset every station to the checkmarks from your original list?")){
+  sections=JSON.parse(JSON.stringify(original));
+  save();
+  updateStats();
+  render();
+ }
+});
 
+/* Export */
+$("exportBtn").addEventListener("click",()=>{
+ const lines=["MRT STAMP COLLECTION",""];
+
+ sections.forEach(s=>{
+  lines.push(s.name);
+  s.stations.forEach(st=>
+   lines.push((st.collected?"✓":"◦")+" "+st.code+" - "+st.name)
+  );
+  lines.push("");
+ });
+
+ const blob=new Blob([lines.join("\n")],{
+  type:"text/plain;charset=utf-8"
+ });
+
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;
+ a.download="Taipei-MRT-stamp-checklist.txt";
+ a.click();
+ URL.revokeObjectURL(url);
+});
+
+/* Screen navigation */
+function showMainScreen(){
+ $("mapScreen").classList.remove("visible");
+ $("diagramScreen").classList.remove("visible");
+ $("mainScreen").classList.remove("hidden");
+ window.scrollTo(0,0);
+}
+
+$("openMapBtn").addEventListener("click",()=>{
+ $("mainScreen").classList.add("hidden");
+ $("diagramScreen").classList.remove("visible");
+ $("mapScreen").classList.add("visible");
+ window.scrollTo(0,0);
+});
+
+$("backBtn").addEventListener("click",showMainScreen);
+
+$("openDiagramBtn").addEventListener("click",()=>{
+ $("mainScreen").classList.add("hidden");
+ $("mapScreen").classList.remove("visible");
+ $("diagramScreen").classList.add("visible");
+ renderDiagram();
+ window.scrollTo(0,0);
+});
+
+$("backDiagramBtn").addEventListener("click",showMainScreen);
+
+/* Initial display */
+updateStats();
+render();
+
+let cloudReady=false;
+let applyingCloud=false;
+let unsubscribeCloud=null;
+
+/* Google sign-in */
+$("signInBtn").addEventListener("click",()=>{
+ const provider=new firebase.auth.GoogleAuthProvider();
+ provider.setCustomParameters({prompt:"select_account"});
+
+ $("syncStatus").textContent="Opening Google sign-in…";
+ $("signInBtn").disabled=true;
+
+ auth.signInWithPopup(provider).catch(error=>{
+  $("syncStatus").textContent="Sign-in error: "+error.code+" — "+error.message;
+  $("signInBtn").disabled=false;
+  console.error("Google sign-in error:",error);
+  alert(error.code+": "+error.message);
+ });
+});
+
+/* Firebase cloud sync */
+auth.onAuthStateChanged(async user=>{
  cloudReady=false;
 
  if(unsubscribeCloud){
-
   unsubscribeCloud();
-
   unsubscribeCloud=null;
-
  }
 
  if(!user){
-
   $("syncStatus").textContent="Not signed in";
-
   $("signInBtn").textContent="Sign in with Google";
-
   $("signInBtn").disabled=false;
-
   return;
-
  }
 
  $("signInBtn").textContent="Signed in ✓";
-
  $("signInBtn").disabled=true;
-
  $("syncStatus").textContent="Connecting to cloud…";
 
  const ref=db.collection("users").doc(user.uid);
 
  try{
-
   $("syncStatus").textContent="Testing Firestore connection…";
 
   const snapshot=await Promise.race([
-
    ref.get({source:"server"}),
-
    new Promise((_,reject)=>
-
-    setTimeout(()=>reject(
-
-     new Error("Firestore timed out after 15 seconds")
-
-    ),15000)
-
+    setTimeout(()=>reject(new Error("Firestore timed out after 15 seconds")),15000)
    )
-
   ]);
 
   if(!snapshot.exists){
-
    const stations={};
-
-   allStations().forEach(s=>{
-
-    stations[s.code]=s.collected;
-
-   });
+   allStations().forEach(s=>{stations[s.code]=s.collected;});
 
    await ref.set({
-
     stations,
-
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-
    });
-
   }else{
-
    const saved=snapshot.data().stations||{};
 
    applyingCloud=true;
-
    allStations().forEach(s=>{
-
-    if(typeof saved[s.code]==="boolean"){
-
-     s.collected=saved[s.code];
-
-    }
-
+    if(typeof saved[s.code]==="boolean")s.collected=saved[s.code];
    });
 
    localStorage.setItem(
-
     STORAGE_KEY,
-
     JSON.stringify(allStations().map(s=>({
-
      code:s.code,
-
      collected:s.collected
-
     })))
-
    );
 
    updateStats();
-
    render();
-
    applyingCloud=false;
-
   }
 
   cloudReady=true;
-
   $("syncStatus").textContent="☁️ Synced";
 
   unsubscribeCloud=ref.onSnapshot(doc=>{
-
    if(!doc.exists||!cloudReady)return;
 
    const saved=doc.data().stations||{};
-
    applyingCloud=true;
 
    allStations().forEach(s=>{
-
-    if(typeof saved[s.code]==="boolean"){
-
-     s.collected=saved[s.code];
-
-    }
-
+    if(typeof saved[s.code]==="boolean")s.collected=saved[s.code];
    });
 
    localStorage.setItem(
-
     STORAGE_KEY,
-
     JSON.stringify(allStations().map(s=>({
-
      code:s.code,
-
      collected:s.collected
-
     })))
-
    );
 
    updateStats();
-
    render();
-
    applyingCloud=false;
-
    $("syncStatus").textContent="☁️ Synced";
-
   },error=>{
-
-   $("syncStatus").textContent=
-
-    "Sync error: "+error.code+" — "+error.message;
-
+   $("syncStatus").textContent="Sync error: "+error.code+" — "+error.message;
   });
 
  }catch(error){
-
   applyingCloud=false;
-
-  $("syncStatus").textContent=
-
-   "Sync error: "+error.code+" — "+error.message;
-
+  $("syncStatus").textContent="Sync error: "+error.code+" — "+error.message;
  }
-
 });
-
 </script>
-
 </body>
-
 </html>
