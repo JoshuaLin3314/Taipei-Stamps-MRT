@@ -1,14 +1,13 @@
-
 <!doctype html>
 <html lang="en">
 <head>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Taipei MRT Stamps">
+<link rel="apple-touch-icon" href="IMG_3002.jpeg">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#123d36">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Taipei MRT Stamps">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="IMG_3002.jpeg">
 <title>Taipei MRT Stamp Tracker</title>
 
 <style>
@@ -19,7 +18,7 @@
  --paper:#f5f7f3;
  --card:#fff;
  --line:#dce5df;
- --green:#176b50;
+ --green:#176b50
 }
 *{box-sizing:border-box}
 body{
@@ -32,7 +31,7 @@ header{
 h1{font-size:25px;margin:0 0 5px}
 .sub{opacity:.82;font-size:13px}
 main{max-width:760px;margin:0 auto;padding:16px}
-.summary,.line-stats,.map-card,.diagram-card,.guide-card,.detail-card{
+.summary,.line-stats,.map-card,.diagram-card,.guide-card{
  background:var(--card);border:1px solid var(--line);
  border-radius:18px;padding:18px;margin:14px 0;
  box-shadow:0 4px 16px #17352f0c
@@ -82,14 +81,14 @@ button{
  padding:11px 13px;border-radius:12px;font-weight:650;font-size:14px;cursor:pointer
 }
 button.active{background:#dceee5;border-color:#a8cdb9;color:#14573f}
-button:disabled{opacity:.55;cursor:not-allowed}
 .map-button{
  display:block;width:100%;background:#176b50;color:white;border:0;
  padding:16px;border-radius:14px;font-size:16px;font-weight:750;margin:16px 0
 }
 .map-button:active{opacity:.85}
-.main-screen.hidden,.map-screen,.diagram-screen,.guide-screen,.station-screen{display:none}
-.map-screen.visible,.diagram-screen.visible,.guide-screen.visible,.station-screen.visible{display:block}
+.map-screen,.diagram-screen,.guide-screen{display:none}
+.map-screen.visible,.diagram-screen.visible,.guide-screen.visible{display:block}
+.main-screen.hidden{display:none}
 .map-top{
  display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px
 }
@@ -114,38 +113,44 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .station input{
  width:20px;height:20px;accent-color:var(--green);flex:none;margin:1px 0 0
 }
-.station .details{flex:1;line-height:1.35;min-width:0}
-.station.done .details{color:#718078}
-.station-open{
- display:block;border:0;background:none;padding:0;text-align:left;
- color:inherit;font:inherit;font-weight:inherit;cursor:pointer;line-height:1.4
-}
-.station-open:active{opacity:.65}
+.station .details{flex:1;line-height:1.35}
 .code{font-weight:750;font-variant-numeric:tabular-nums}
+.station.done .details{color:#718078;text-decoration:line-through}
 .footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 8px 34px}
-.guide-description,.diagram-intro{
- color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 15px
+
+/* PDF Route Guide — PDF.js viewer */
+.guide-description{
+ color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 14px
 }
 .guide-frame-wrap{
- width:100%;min-height:420px;border:1px solid var(--line);
- border-radius:12px;overflow:auto;background:#e9ece9;padding:8px
+ width:100%;min-height:420px;
+ border:1px solid var(--line);border-radius:12px;
+ overflow:auto;background:#e9ece9;padding:8px
 }
 #guideCanvas{
- display:block;width:100%;height:auto;margin:0 auto;background:white;
- border-radius:4px;box-shadow:0 2px 8px #0002
+ display:block;width:100%;height:auto;
+ margin:0 auto;background:white;border-radius:4px;
+ box-shadow:0 2px 8px #0002
 }
 .guide-fallback{
  display:block;text-align:center;color:var(--green);font-weight:700;
  font-size:13px;margin-top:14px;text-decoration:none
 }
+.guide-fallback:hover{text-decoration:underline}
 .guide-page-label{
  font-size:12px;color:var(--muted);text-align:center;margin:0 0 10px
+}
+
+/* Network Diagram */
+.diagram-intro{
+ color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 15px
 }
 .diagram-line-selectors{
  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:18px
 }
 .diagram-line-button{
- display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 5px;font-size:12px
+ display:flex;align-items:center;justify-content:center;gap:6px;
+ padding:10px 5px;font-size:12px
 }
 .diagram-line-button.active{background:#eaf1ed;border-color:#8eaa9b;color:var(--ink)}
 .diagram-line-dot{width:11px;height:11px;border-radius:50%;flex:none}
@@ -185,74 +190,15 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .diagram-station-code{font-size:11px;color:var(--muted);white-space:nowrap}
 .diagram-status{font-size:11px;color:var(--muted);white-space:nowrap}
 .diagram-status.collected{font-weight:700}
-
-/* Station detail screen */
-.station-screen{max-width:760px;margin:0 auto;padding:16px}
-.station-detail-header{
- display:flex;align-items:center;justify-content:space-between;
- gap:10px;margin:5px 0 18px;font-size:12px;font-weight:800;
- letter-spacing:.08em;color:var(--muted)
-}
-.station-hero{
- position:relative;overflow:hidden;background:white;border:1px solid var(--line);
- border-radius:22px;margin-bottom:14px;box-shadow:0 4px 16px #17352f0c
-}
-.station-color-bar{height:9px;background:var(--green)}
-.station-hero-content{padding:25px 20px 28px}
-.station-detail-code{
- font-size:13px;font-weight:800;color:var(--muted);letter-spacing:.12em
-}
-.station-hero h1{font-size:28px;margin:9px 0 5px;color:var(--ink)}
-.station-hero p{font-size:14px;color:var(--muted);margin:0}
-.detail-card h2{font-size:17px;margin:0 0 16px}
-.detail-row{
- display:flex;justify-content:space-between;gap:12px;
- padding:12px 0;border-bottom:1px solid #edf1ee;font-size:13px
-}
-.detail-row:last-child{border-bottom:0}
-.detail-row span{color:var(--muted)}
-.detail-row strong{text-align:right}
-.transfer-item{
- display:flex;align-items:center;gap:10px;padding:12px 0;
- border-bottom:1px solid #edf1ee;font-size:14px
-}
-.transfer-item:last-child{border-bottom:0}
-.transfer-code{
- padding:6px 9px;border-radius:9px;background:#eaf1ed;
- font-weight:800;font-size:12px
-}
-.transfer-link{
- border:0;background:none;padding:0;color:var(--green);
- font-weight:750;text-align:left
-}
-.detail-collection{
- display:flex;align-items:center;gap:12px;padding:14px;
- background:#f1f6f2;border-radius:12px;font-weight:650;font-size:14px
-}
-.detail-collection input{width:22px;height:22px;accent-color:var(--green)}
-.detail-field{display:block;font-size:13px;font-weight:700;margin-top:17px}
-.detail-field input,.detail-field textarea{
- display:block;width:100%;margin-top:8px;padding:12px;
- border:1px solid var(--line);border-radius:11px;
- background:white;color:var(--ink);font:inherit;font-size:15px
-}
-.detail-field textarea{resize:vertical}
-.save-detail-button{
- width:100%;margin-top:17px;background:#176b50;
- color:white;border:0;padding:14px;font-size:15px
-}
-.detail-save-status{font-size:12px;color:var(--muted);margin:10px 0 0}
 @media(min-width:650px){
  main{padding:22px}
  .section{display:inline-block;width:calc(50% - 8px);vertical-align:top;margin:8px 3px}
  .section h2{min-height:54px}
  .diagram-line-selectors{grid-template-columns:repeat(6,minmax(0,1fr))}
- .station-screen{padding:22px}
 }
 @media(max-width:420px){
  .map-top{align-items:flex-start}
  .map-top h2{font-size:18px}
- .station-hero h1{font-size:24px}
 }
 </style>
 </head>
@@ -304,7 +250,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 <div class="footer">
  Progress is saved on this device and synced to your Google account when signed in.
- Station notes and visit dates are saved on this device.
 </div>
 </div>
 
@@ -312,10 +257,12 @@ button:disabled{opacity:.55;cursor:not-allowed}
  <section class="map-card">
   <div class="map-top">
    <h2>🗺️ Taipei MRT Map</h2>
-   <button class="back-button" id="backBtn">← Back</button>
+   <button class="back-button" id="backBtn">← Back to Main Screen</button>
   </div>
   <img class="map-image" src="IMG_9049.jpeg" alt="Taipei MRT system map">
-  <div class="map-note">Taipei MRT route map.</div>
+  <div class="map-note">
+   Taipei MRT route map. Use the Back to Main Screen button to return to your stamp collection.
+  </div>
  </section>
 </div>
 
@@ -344,71 +291,36 @@ button:disabled{opacity:.55;cursor:not-allowed}
  </section>
 </div>
 
+<!-- PDF Route Guide Screen -->
 <div id="guideScreen" class="guide-screen">
  <section class="guide-card">
   <div class="map-top">
    <h2>📄 MRT Route Guide</h2>
-   <button class="back-button" id="backGuideBtn">← Back</button>
+   <button class="back-button" id="backGuideBtn">← Back to Main Tracker</button>
   </div>
-  <p class="guide-description">Your Taipei MRT route guide.</p>
+
+  <p class="guide-description">
+   Your Taipei MRT route guide. Use the button above to return to your stamp collection.
+  </p>
+
   <p class="guide-page-label" id="guidePageLabel">Route guide</p>
+
   <div class="guide-frame-wrap">
    <canvas id="guideCanvas"></canvas>
   </div>
-  <a id="openPdfSeparately" class="guide-fallback"
-   href="MRT%20Taipei%20Station.pdf" target="_blank" rel="noopener">
+
+  <a
+   id="openPdfSeparately"
+   class="guide-fallback"
+   href="MRT%20Taipei%20Station.pdf"
+   target="_blank"
+   rel="noopener">
    Open PDF separately ↗
   </a>
-  <div class="map-note">If the PDF preview does not load, use “Open PDF separately”.</div>
- </section>
-</div>
 
-<!-- Full-screen station detail page -->
-<div id="stationScreen" class="station-screen">
- <div class="station-detail-header">
-  <button id="stationBackBtn" class="back-button">← Back</button>
-  <span id="stationLineLabel">MRT STATION</span>
- </div>
-
- <section class="station-hero">
-  <div id="stationColorBar" class="station-color-bar"></div>
-  <div class="station-hero-content">
-   <div id="stationCode" class="station-detail-code"></div>
-   <h1 id="stationName"></h1>
-   <p id="stationLineName"></p>
+  <div class="map-note">
+   If the PDF preview does not load, use “Open PDF separately” above.
   </div>
- </section>
-
- <section class="detail-card">
-  <h2>🚉 Station information</h2>
-  <div class="detail-row"><span>Chinese name</span><strong>Not yet verified</strong></div>
-  <div class="detail-row"><span>Station exits</span><strong>Not yet available</strong></div>
-  <div class="detail-row"><span>Facilities</span><strong>Not yet available</strong></div>
-  <div class="detail-row"><span>First / last train</span><strong>Not yet available</strong></div>
-  <div class="detail-row"><span>Station map</span><strong>Not yet available</strong></div>
- </section>
-
- <section class="detail-card">
-  <h2>🔄 Transfers</h2>
-  <div id="stationTransfers"></div>
- </section>
-
- <section class="detail-card">
-  <h2>🎟️ My stamp collection</h2>
-  <label class="detail-collection">
-   <input type="checkbox" id="detailCollected">
-   <span>I've collected this station's stamp!</span>
-  </label>
-  <label class="detail-field">
-   Visit date
-   <input type="date" id="stationVisitDate">
-  </label>
-  <label class="detail-field">
-   My notes
-   <textarea id="stationNotes" rows="4" placeholder="Write something about this station..."></textarea>
-  </label>
-  <button id="saveStationNotes" class="save-detail-button">Save station details</button>
-  <p id="stationSaveStatus" class="detail-save-status"></p>
  </section>
 </div>
 </main>
@@ -429,10 +341,10 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.firestore();
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-const original=[
+const original = [
 {"name":"Wenhu Line (Brown Line - BR)","stations":[
 {"code":"BR01","name":"Taipei Zoo","collected":true},
 {"code":"BR02","name":"Muzha","collected":false},
@@ -582,6 +494,7 @@ const original=[
 ]}
 ];
 
+// Preserve the Red Line ordering from the original tracker.
 const redLine=original.find(s=>s.name.startsWith("Tamsui-Xinyi Line"));
 if(redLine){
  redLine.stations.sort((a,b)=>{
@@ -592,9 +505,7 @@ if(redLine){
 }
 
 const STORAGE_KEY="taipei-mrt-stamps-v1";
-const DETAILS_KEY="taipei-mrt-station-details-v1";
 let sections=JSON.parse(JSON.stringify(original));
-
 try{
  const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
  if(saved&&Array.isArray(saved)){
@@ -607,7 +518,6 @@ try{
 
 let filter="all";
 let selectedDiagramLine=0;
-let activeDetailStation=null;
 const $=id=>document.getElementById(id);
 
 const lineColors={
@@ -619,25 +529,12 @@ const lineColors={
  "Circular Line (Yellow Line - Y)":"#D4B900"
 };
 
-const shortLineNames=["Brown","Red","Blue","Green","Orange","Yellow"];
+const shortLineNames=[
+ "Brown","Red","Blue","Green","Orange","Yellow"
+];
 
 function allStations(){
  return sections.flatMap(s=>s.stations);
-}
-
-function findStation(code){
- for(const section of sections){
-  const station=section.stations.find(s=>s.code===code);
-  if(station)return {station,section};
- }
- return null;
-}
-
-function readStationDetails(){
- try{
-  const saved=JSON.parse(localStorage.getItem(DETAILS_KEY));
-  return saved&&typeof saved==="object"?saved:{};
- }catch(e){return {};}
 }
 
 /* PDF Route Guide */
@@ -650,7 +547,8 @@ const routePages={
  "Circular Line (Yellow Line - Y)":6
 };
 
-pdfjsLib.GlobalWorkerOptions.workerSrc=
+/* PDF.js setup */
+pdfjsLib.GlobalWorkerOptions.workerSrc =
  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 let currentPdf=null;
@@ -658,13 +556,19 @@ let currentRenderTask=null;
 let guideRequest=0;
 
 async function openGuide(page,lineName){
- hideScreens();
+ $("mainScreen").classList.add("hidden");
+ $("mapScreen").classList.remove("visible");
+ $("diagramScreen").classList.remove("visible");
  $("guideScreen").classList.add("visible");
 
  const pageNumber=Number(page);
  const requestNumber=++guideRequest;
- $("guidePageLabel").textContent=(lineName||"MRT")+" — PDF page "+pageNumber+" — Loading…";
- $("openPdfSeparately").href="MRT%20Taipei%20Station.pdf#page="+pageNumber;
+
+ $("guidePageLabel").textContent=
+  (lineName||"MRT")+" — PDF page "+pageNumber+" — Loading…";
+
+ $("openPdfSeparately").href=
+  "MRT%20Taipei%20Station.pdf#page="+pageNumber;
 
  const canvas=$("guideCanvas");
  const context=canvas.getContext("2d");
@@ -679,37 +583,56 @@ async function openGuide(page,lineName){
 
  try{
   if(!currentPdf){
-   currentPdf=await pdfjsLib.getDocument("MRT%20Taipei%20Station.pdf").promise;
+   currentPdf=await pdfjsLib.getDocument(
+    "MRT%20Taipei%20Station.pdf"
+   ).promise;
   }
+
   if(requestNumber!==guideRequest)return;
-  if(pageNumber<1||pageNumber>currentPdf.numPages)throw new Error("Requested PDF page does not exist.");
+
+  if(pageNumber<1||pageNumber>currentPdf.numPages){
+   throw new Error("Requested PDF page does not exist.");
+  }
 
   const pdfPage=await currentPdf.getPage(pageNumber);
+
   if(requestNumber!==guideRequest)return;
 
   const wrap=document.querySelector(".guide-frame-wrap");
   const baseViewport=pdfPage.getViewport({scale:1});
   const availableWidth=Math.max(250,wrap.clientWidth-16);
-  const viewport=pdfPage.getViewport({scale:availableWidth/baseViewport.width});
+  const scale=availableWidth/baseViewport.width;
+  const viewport=pdfPage.getViewport({scale});
   const pixelRatio=Math.min(window.devicePixelRatio||1,2);
 
   canvas.width=Math.floor(viewport.width*pixelRatio);
   canvas.height=Math.floor(viewport.height*pixelRatio);
   canvas.style.width=viewport.width+"px";
   canvas.style.height=viewport.height+"px";
+
   context.setTransform(pixelRatio,0,0,pixelRatio,0,0);
 
-  currentRenderTask=pdfPage.render({canvasContext:context,viewport});
+  currentRenderTask=pdfPage.render({
+   canvasContext:context,
+   viewport:viewport
+  });
+
   await currentRenderTask.promise;
   currentRenderTask=null;
 
   if(requestNumber!==guideRequest)return;
-  $("guidePageLabel").textContent=(lineName||"MRT")+" — PDF page "+pageNumber;
+
+  $("guidePageLabel").textContent=
+   (lineName||"MRT")+" — PDF page "+pageNumber;
+
  }catch(error){
   if(error&&error.name==="RenderingCancelledException")return;
+
   console.error("PDF loading error:",error);
+
   if(requestNumber===guideRequest){
-   $("guidePageLabel").textContent="Could not load the PDF. Use the button below to open it.";
+   $("guidePageLabel").textContent=
+    "Could not load the PDF. Use the button below to open it.";
   }
  }
 }
@@ -723,7 +646,7 @@ function updateStats(){
  $("remaining").textContent=a.length-done;
  $("percent").textContent=pct.toFixed(1)+"%";
  $("fill").style.width=pct+"%";
- $("progress").textContent=`${done} of ${a.length} stamps collected`;
+ $("progress").textContent=${done} of ${a.length} stamps collected;
 
  const statsRoot=$("lineStats");
  statsRoot.innerHTML="";
@@ -745,7 +668,7 @@ function updateStats(){
 
   const count=document.createElement("span");
   count.className="line-stat-count";
-  count.textContent=`${collected}/${total}`;
+  count.textContent=${collected}/${total};
   top.append(name,count);
 
   const track=document.createElement("div");
@@ -760,7 +683,9 @@ function updateStats(){
   route.className="route-link";
   route.type="button";
   route.textContent="📄 View Route";
-  route.addEventListener("click",()=>openGuide(routePages[section.name],section.name));
+  route.addEventListener("click",()=>{
+   openGuide(routePages[section.name],section.name);
+  });
 
   const barRow=document.createElement("div");
   barRow.className="line-stat-bar-row";
@@ -801,13 +726,14 @@ function render(){
   box.appendChild(h);
 
   shown.forEach(st=>{
-   const row=document.createElement("div");
-   row.className="station"+(st.collected?" done":"");
+   const label=document.createElement("label");
+   label.className="station"+(st.collected?" done":"");
 
    const cb=document.createElement("input");
    cb.type="checkbox";
    cb.checked=st.collected;
-   cb.setAttribute("aria-label",`Collected ${st.code} ${st.name}`);
+   cb.setAttribute("aria-label",Collected ${st.code} ${st.name});
+
    cb.addEventListener("change",()=>{
     st.collected=cb.checked;
     save();
@@ -815,19 +741,17 @@ function render(){
     render();
    });
 
-   const details=document.createElement("div");
+   const details=document.createElement("span");
    details.className="details";
 
-   const button=document.createElement("button");
-   button.type="button";
-   button.className="station-open";
-   button.textContent=st.code+" — "+st.name;
-   button.setAttribute("aria-label","Open details for "+st.code+" "+st.name);
-   button.addEventListener("click",()=>openStationDetail(st.code));
+   const code=document.createElement("span");
+   code.className="code";
+   code.textContent=st.code+" — ";
 
-   details.appendChild(button);
-   row.append(cb,details);
-   box.appendChild(row);
+   details.appendChild(code);
+   details.appendChild(document.createTextNode(st.name));
+   label.append(cb,details);
+   box.appendChild(label);
   });
 
   root.appendChild(box);
@@ -836,102 +760,11 @@ function render(){
  if(!root.children.length)root.textContent="No matching stations.";
 }
 
-/* Station detail pages */
-function openStationDetail(code){
- const result=findStation(code);
- if(!result)return;
-
- activeDetailStation=result.station;
- const station=result.station;
- const section=result.section;
- const color=lineColors[section.name]||"#176b50";
-
- hideScreens();
- $("stationScreen").classList.add("visible");
-
- $("stationLineLabel").textContent=shortLineNames[sections.indexOf(section)].toUpperCase()+" LINE";
- $("stationColorBar").style.background=color;
- $("stationCode").textContent=station.code;
- $("stationName").textContent=station.name;
- $("stationLineName").textContent=section.name;
- $("detailCollected").checked=station.collected;
-
- const notes=readStationDetails()[station.code]||{};
- $("stationVisitDate").value=notes.date||"";
- $("stationNotes").value=notes.notes||"";
- $("stationSaveStatus").textContent="";
-
- renderStationTransfers(station);
- window.scrollTo(0,0);
-}
-
-function renderStationTransfers(station){
- const root=$("stationTransfers");
- root.innerHTML="";
-
- const matches=station.name.match(/\b(?:BR|BL|R|G|O|Y)\d+A?\b/g)||[];
- const unique=[...new Set(matches.filter(code=>code!==station.code))];
-
- if(!unique.length){
-  const message=document.createElement("p");
-  message.className="map-note";
-  message.textContent=station.name.includes("Branch")
-   ?"Branch-line information is included in the station name."
-   :"No transfer station code is listed in your current tracker.";
-  root.appendChild(message);
-  return;
- }
-
- unique.forEach(code=>{
-  const result=findStation(code);
-  const row=document.createElement("div");
-  row.className="transfer-item";
-
-  const badge=document.createElement("span");
-  badge.className="transfer-code";
-  badge.textContent=code;
-  row.appendChild(badge);
-
-  if(result){
-   const button=document.createElement("button");
-   button.className="transfer-link";
-   button.textContent=result.station.name;
-   button.addEventListener("click",()=>openStationDetail(code));
-   row.appendChild(button);
-  }else{
-   const text=document.createElement("span");
-   text.textContent="Station not found in current tracker";
-   row.appendChild(text);
-  }
-
-  root.appendChild(row);
- });
-}
-
-$("stationBackBtn").addEventListener("click",showMainScreen);
-
-$("detailCollected").addEventListener("change",()=>{
- if(!activeDetailStation)return;
- activeDetailStation.collected=$("detailCollected").checked;
- save();
- updateStats();
- render();
-});
-
-$("saveStationNotes").addEventListener("click",()=>{
- if(!activeDetailStation)return;
- const saved=readStationDetails();
- saved[activeDetailStation.code]={
-  date:$("stationVisitDate").value,
-  notes:$("stationNotes").value
- };
- localStorage.setItem(DETAILS_KEY,JSON.stringify(saved));
- $("stationSaveStatus").textContent="✓ Saved on this device";
-});
-
-/* Network diagram */
+/* Network Diagram rendering */
 function renderDiagram(){
  const selector=$("diagramLineSelectors");
+ if(!selector)return;
+
  selector.innerHTML="";
 
  sections.forEach((section,index)=>{
@@ -963,7 +796,7 @@ function renderDiagram(){
  const pct=total?collected/total*100:0;
 
  $("diagramLineName").textContent=section.name;
- $("diagramLineCount").textContent=`${collected} / ${total} collected`;
+ $("diagramLineCount").textContent=${collected} / ${total} collected;
  $("diagramProgressFill").style.width=pct+"%";
  $("diagramProgressFill").style.background=color;
 
@@ -981,6 +814,7 @@ function renderDiagram(){
   node.className="diagram-node"+(station.collected?" collected":"");
   node.style.borderColor=color;
   node.style.setProperty("--node-color",color);
+
   rail.appendChild(node);
 
   if(index<section.stations.length-1){
@@ -994,6 +828,7 @@ function renderDiagram(){
   info.className="diagram-station-info";
 
   const stationText=document.createElement("div");
+
   const stationName=document.createElement("div");
   stationName.className="diagram-station-name";
   stationName.textContent=station.name;
@@ -1015,13 +850,13 @@ function renderDiagram(){
  });
 }
 
-/* Saving and cloud sync */
-let cloudReady=false;
-let applyingCloud=false;
-let unsubscribeCloud=null;
-
+/* Saving */
 async function save(){
- const data=allStations().map(s=>({code:s.code,collected:s.collected}));
+ const data=allStations().map(s=>({
+  code:s.code,
+  collected:s.collected
+ }));
+
  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
 
  if(!auth.currentUser||!cloudReady||applyingCloud)return;
@@ -1034,6 +869,7 @@ async function save(){
    stations,
    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   },{merge:true});
+
   $("syncStatus").textContent="☁️ Synced";
  }catch(error){
   $("syncStatus").textContent="Sync error: "+error.code+" — "+error.message;
@@ -1043,10 +879,12 @@ async function save(){
 /* Search and filters */
 $("search").addEventListener("input",render);
 
-[["allBtn","all"],["missingBtn","missing"],["doneBtn","done"]].forEach(([id,val])=>{
+[["allBtn","all"],["missingBtn","missing"],["doneBtn","done"]]
+.forEach(([id,val])=>{
  $(id).addEventListener("click",()=>{
   filter=val;
-  document.querySelectorAll("#mainScreen .controls button").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll("#mainScreen .controls button")
+   .forEach(b=>b.classList.remove("active"));
   $(id).classList.add("active");
   render();
  });
@@ -1065,12 +903,19 @@ $("resetBtn").addEventListener("click",()=>{
 /* Export */
 $("exportBtn").addEventListener("click",()=>{
  const lines=["MRT STAMP COLLECTION",""];
+
  sections.forEach(s=>{
   lines.push(s.name);
-  s.stations.forEach(st=>lines.push((st.collected?"✓":"◦")+" "+st.code+" - "+st.name));
+  s.stations.forEach(st=>
+   lines.push((st.collected?"✓":"◦")+" "+st.code+" - "+st.name)
+  );
   lines.push("");
  });
- const blob=new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"});
+
+ const blob=new Blob([lines.join("\n")],{
+  type:"text/plain;charset=utf-8"
+ });
+
  const url=URL.createObjectURL(blob);
  const a=document.createElement("a");
  a.href=url;
@@ -1080,47 +925,58 @@ $("exportBtn").addEventListener("click",()=>{
 });
 
 /* Screen navigation */
-function hideScreens(){
+function showMainScreen(){
  guideRequest++;
+
  if(currentRenderTask){
   try{currentRenderTask.cancel();}catch(e){}
   currentRenderTask=null;
  }
- ["mainScreen","mapScreen","diagramScreen","guideScreen","stationScreen"].forEach(id=>{
-  $(id).classList.remove("hidden","visible");
- });
-}
 
-function showMainScreen(){
- hideScreens();
+ $("mapScreen").classList.remove("visible");
+ $("diagramScreen").classList.remove("visible");
+ $("guideScreen").classList.remove("visible");
  $("mainScreen").classList.remove("hidden");
  window.scrollTo(0,0);
 }
 
 $("openMapBtn").addEventListener("click",()=>{
- hideScreens();
+ $("mainScreen").classList.add("hidden");
+ $("diagramScreen").classList.remove("visible");
+ $("guideScreen").classList.remove("visible");
  $("mapScreen").classList.add("visible");
  window.scrollTo(0,0);
 });
+
 $("backBtn").addEventListener("click",showMainScreen);
 
 $("openDiagramBtn").addEventListener("click",()=>{
- hideScreens();
+ $("mainScreen").classList.add("hidden");
+ $("mapScreen").classList.remove("visible");
+ $("guideScreen").classList.remove("visible");
  $("diagramScreen").classList.add("visible");
  renderDiagram();
  window.scrollTo(0,0);
 });
+
 $("backDiagramBtn").addEventListener("click",showMainScreen);
+
+/* PDF Guide navigation */
 $("backGuideBtn").addEventListener("click",showMainScreen);
 
 /* Initial display */
 updateStats();
 render();
 
+let cloudReady=false;
+let applyingCloud=false;
+let unsubscribeCloud=null;
+
 /* Google sign-in */
 $("signInBtn").addEventListener("click",()=>{
  const provider=new firebase.auth.GoogleAuthProvider();
  provider.setCustomParameters({prompt:"select_account"});
+
  $("syncStatus").textContent="Opening Google sign-in…";
  $("signInBtn").disabled=true;
 
@@ -1135,6 +991,7 @@ $("signInBtn").addEventListener("click",()=>{
 /* Firebase cloud sync */
 auth.onAuthStateChanged(async user=>{
  cloudReady=false;
+
  if(unsubscribeCloud){
   unsubscribeCloud();
   unsubscribeCloud=null;
@@ -1158,25 +1015,35 @@ auth.onAuthStateChanged(async user=>{
 
   const snapshot=await Promise.race([
    ref.get({source:"server"}),
-   new Promise((_,reject)=>setTimeout(()=>reject(new Error("Firestore timed out after 15 seconds")),15000))
+   new Promise((_,reject)=>
+    setTimeout(()=>reject(new Error("Firestore timed out after 15 seconds")),15000)
+   )
   ]);
 
   if(!snapshot.exists){
    const stations={};
    allStations().forEach(s=>{stations[s.code]=s.collected;});
+
    await ref.set({
     stations,
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
    });
   }else{
    const saved=snapshot.data().stations||{};
+
    applyingCloud=true;
    allStations().forEach(s=>{
     if(typeof saved[s.code]==="boolean")s.collected=saved[s.code];
    });
-   localStorage.setItem(STORAGE_KEY,JSON.stringify(
-    allStations().map(s=>({code:s.code,collected:s.collected}))
-   ));
+
+   localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(allStations().map(s=>({
+     code:s.code,
+     collected:s.collected
+    })))
+   );
+
    updateStats();
    render();
    applyingCloud=false;
@@ -1187,6 +1054,7 @@ auth.onAuthStateChanged(async user=>{
 
   unsubscribeCloud=ref.onSnapshot(doc=>{
    if(!doc.exists||!cloudReady)return;
+
    const saved=doc.data().stations||{};
    applyingCloud=true;
 
@@ -1194,21 +1062,16 @@ auth.onAuthStateChanged(async user=>{
     if(typeof saved[s.code]==="boolean")s.collected=saved[s.code];
    });
 
-   localStorage.setItem(STORAGE_KEY,JSON.stringify(
-    allStations().map(s=>({code:s.code,collected:s.collected}))
-   ));
+   localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(allStations().map(s=>({
+     code:s.code,
+     collected:s.collected
+    })))
+   );
 
    updateStats();
    render();
-
-   if(activeDetailStation){
-    const updated=findStation(activeDetailStation.code);
-    if(updated){
-     activeDetailStation=updated.station;
-     $("detailCollected").checked=updated.station.collected;
-    }
-   }
-
    applyingCloud=false;
    $("syncStatus").textContent="☁️ Synced";
   },error=>{
