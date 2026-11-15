@@ -149,6 +149,58 @@ button:disabled{opacity:.55;cursor:not-allowed}
  letter-spacing:.07em;margin-bottom:5px
 }
 
+/* Station information additions */
+.station-info-section{
+ border:1px solid var(--line);
+ border-radius:15px;
+ padding:16px;
+ margin:16px 0;
+ background:#fff;
+}
+.station-info-section h3{
+ font-size:16px;
+ margin:0 0 12px;
+}
+.station-info-grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
+}
+.station-info-item{
+ background:#f5f7f3;
+ border-radius:11px;
+ padding:12px;
+ min-width:0;
+}
+.station-info-item.full{grid-column:1/-1}
+.station-info-item strong{
+ display:block;
+ font-size:11px;
+ color:var(--muted);
+ text-transform:uppercase;
+ letter-spacing:.05em;
+ margin-bottom:6px;
+}
+.station-info-item span{
+ display:block;
+ font-size:13px;
+ line-height:1.5;
+ overflow-wrap:anywhere;
+}
+.station-info-note{
+ font-size:12px;
+ line-height:1.5;
+ color:var(--muted);
+ margin:12px 0 0;
+}
+.station-info-link{
+ color:var(--green);
+ font-weight:700;
+ font-size:13px;
+ text-decoration:none;
+}
+.station-info-link:hover{text-decoration:underline}
+
 /* Digital stamp record */
 .stamp-record{
  border:1px solid var(--line);
@@ -164,10 +216,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
  gap:10px;
  margin-bottom:13px
 }
-.stamp-record-heading h3{
- font-size:16px;
- margin:0
-}
+.stamp-record-heading h3{font-size:16px;margin:0}
 .stamp-status{
  display:inline-flex;
  align-items:center;
@@ -179,67 +228,30 @@ button:disabled{opacity:.55;cursor:not-allowed}
  font-size:12px;
  font-weight:750
 }
-.stamp-status.collected{
- background:#e2f2e8;
- color:#176b50
-}
+.stamp-status.collected{background:#e2f2e8;color:#176b50}
 .stamp-status-dot{
- width:8px;
- height:8px;
- border-radius:50%;
- background:#89958e
+ width:8px;height:8px;border-radius:50%;background:#89958e
 }
-.stamp-status.collected .stamp-status-dot{
- background:#176b50
-}
+.stamp-status.collected .stamp-status-dot{background:#176b50}
 .stamp-toggle{
- width:100%;
- background:#176b50;
- color:white;
- border:0;
- padding:13px;
- margin-top:4px;
- font-size:14px
+ width:100%;background:#176b50;color:white;border:0;
+ padding:13px;margin-top:4px;font-size:14px
 }
 .stamp-toggle.not-collected{
- background:#edf2ee;
- color:var(--ink);
- border:1px solid var(--line)
+ background:#edf2ee;color:var(--ink);border:1px solid var(--line)
 }
 .notes-label{
- display:block;
- font-size:13px;
- font-weight:750;
- margin:17px 0 8px
+ display:block;font-size:13px;font-weight:750;margin:17px 0 8px
 }
 .station-notes{
- display:block;
- width:100%;
- min-height:125px;
- resize:vertical;
- border:1px solid var(--line);
- border-radius:12px;
- padding:12px;
- color:var(--ink);
- background:white;
+ display:block;width:100%;min-height:125px;resize:vertical;
+ border:1px solid var(--line);border-radius:12px;padding:12px;
+ color:var(--ink);background:white;
  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
 }
-.station-notes:focus{
- outline:2px solid #a8cdb9;
- border-color:#176b50
-}
-.notes-help{
- color:var(--muted);
- font-size:11px;
- line-height:1.5;
- margin:7px 0 0
-}
-.notes-save-status{
- font-size:11px;
- color:var(--muted);
- margin-top:8px;
- min-height:16px
-}
+.station-notes:focus{outline:2px solid #a8cdb9;border-color:#176b50}
+.notes-help{color:var(--muted);font-size:11px;line-height:1.5;margin:7px 0 0}
+.notes-save-status{font-size:11px;color:var(--muted);margin-top:8px;min-height:16px}
 
 /* PDF route guide */
 .guide-description{
@@ -258,9 +270,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
  font-size:13px;margin-top:14px;text-decoration:none
 }
 .guide-fallback:hover{text-decoration:underline}
-.guide-page-label{
- font-size:12px;color:var(--muted);text-align:center;margin:0 0 10px
-}
+.guide-page-label{font-size:12px;color:var(--muted);text-align:center;margin:0 0 10px}
 
 /* Network diagram */
 .diagram-intro{
@@ -311,6 +321,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .diagram-station-code{font-size:11px;color:var(--muted);white-space:nowrap}
 .diagram-status{font-size:11px;color:var(--muted);white-space:nowrap}
 .diagram-status.collected{font-weight:700}
+
 @media(min-width:650px){
  main{padding:22px}
  .section{display:inline-block;width:calc(50% - 8px);vertical-align:top;margin:8px 3px}
@@ -324,6 +335,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
  .station-detail-top h2{font-size:17px}
  .station-detail-name{font-size:23px}
  .stamp-record-heading{align-items:flex-start;flex-direction:column}
+ .station-info-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -458,6 +470,9 @@ button:disabled{opacity:.55;cursor:not-allowed}
     <div class="station-line-name" id="detailLineName"></div>
    </div>
   </div>
+
+  <!-- Station information -->
+  <div id="stationInformation"></div>
 
   <!-- Digital stamp record -->
   <div class="stamp-record">
@@ -712,6 +727,49 @@ const lineColors={
 };
 const shortLineNames=["Brown","Red","Blue","Green","Orange","Yellow"];
 
+/* Line terminal and branch information */
+const lineServiceInfo={
+ "Wenhu Line (Brown Line - BR)":{
+  directions:"Taipei Zoo ↔ Taipei Nangang Exhibition Center",
+  branch:"No separate branch service listed."
+ },
+ "Tamsui-Xinyi Line (Red Line - R)":{
+  directions:"Tamsui ↔ Guangci/Fengtian Temple",
+  branch:"Xinbeitou branch: Beitou ↔ Xinbeitou."
+ },
+ "Bannan Line (Blue Line - BL)":{
+  directions:"Dingpu ↔ Taipei Nangang Exhibition Center",
+  branch:"No separate branch service listed."
+ },
+ "Songshan-Xindian Line (Green Line - G)":{
+  directions:"Songshan ↔ Xindian",
+  branch:"Xiaobitan branch: Qizhang ↔ Xiaobitan."
+ },
+ "Zhonghe-Xinlu Line (Orange Line - O)":{
+  directions:"Nanshijiao ↔ Huilong, with a separate Luzhou branch.",
+  branch:"Luzhou branch: Daqiaotou ↔ Luzhou. Check the train's destination display."
+ },
+ "Circular Line (Yellow Line - Y)":{
+  directions:"New Taipei Industrial Park ↔ Dapinglin",
+  branch:"No separate branch service listed."
+ }
+};
+
+/*
+ Station-specific information can be added by station code.
+ Unknown details deliberately display as "Not verified".
+ Example:
+ stationInformation["R28"]={
+  openingDate:"1997-03-28",
+  structure:"Underground",
+  fact:"A verified station fact.",
+  stampDesign:"Description of the physical stamp.",
+  stampColor:"Verified stamp color.",
+  stampLocation:"Verified stamp location."
+ };
+*/
+const stationInformation={};
+
 function allStations(){return sections.flatMap(s=>s.stations);}
 
 function cleanStationName(name){
@@ -724,6 +782,72 @@ function getStationLine(station){
 
 function getStationByCode(code){
  return allStations().find(station=>station.code===code);
+}
+
+function infoValue(value){
+ return value||"Not verified";
+}
+
+function renderStationInformation(station){
+ const section=getStationLine(station);
+ const service=lineServiceInfo[section.name]||{};
+ const info=stationInformation[station.code]||{};
+ const root=$("stationInformation");
+
+ const fields=[
+  ["Train directions",infoValue(service.directions),false],
+  ["Branch service",infoValue(service.branch),false],
+  ["Station structure",infoValue(info.structure),false],
+  ["Opening date",infoValue(info.openingDate),false],
+  ["Interesting fact",infoValue(info.fact),true],
+  ["Physical stamp design",infoValue(info.stampDesign),true],
+  ["Stamp color",infoValue(info.stampColor),false],
+  ["Where to find the stamp",infoValue(info.stampLocation),true]
+ ];
+
+ root.innerHTML="";
+
+ const card=document.createElement("section");
+ card.className="station-info-section";
+
+ const heading=document.createElement("h3");
+ heading.textContent="ℹ️ Station Details";
+ card.appendChild(heading);
+
+ const grid=document.createElement("div");
+ grid.className="station-info-grid";
+
+ fields.forEach(([label,value,full])=>{
+  const item=document.createElement("div");
+  item.className="station-info-item"+(full?" full":"");
+
+  const strong=document.createElement("strong");
+  strong.textContent=label;
+
+  const span=document.createElement("span");
+  span.textContent=value;
+
+  item.append(strong,span);
+  grid.appendChild(item);
+ });
+
+ card.appendChild(grid);
+
+ const note=document.createElement("p");
+ note.className="station-info-note";
+ note.textContent=
+  "Station-specific stamp and historical details will be filled in when verified. Train destinations can vary by service; check the platform displays before boarding.";
+ card.appendChild(note);
+
+ const link=document.createElement("a");
+ link.className="station-info-link";
+ link.href="https://english.metro.taipei/";
+ link.target="_blank";
+ link.rel="noopener";
+ link.textContent="Taipei Metro official website ↗";
+ card.appendChild(link);
+
+ root.appendChild(card);
 }
 
 /* Collection status in the station detail screen */
@@ -826,6 +950,7 @@ function openStationDetail(station){
  $("detailLineName").textContent=section.name;
  $("detailLineDot").style.background=color;
 
+ renderStationInformation(station);
  renderStampRecord(station);
  renderStationNotes(station);
 
@@ -1335,6 +1460,7 @@ auth.onAuthStateChanged(async user=>{
     currentStation=getStationByCode(currentStation.code);
     if(currentStation){
      renderStampRecord(currentStation);
+     renderStationInformation(currentStation);
      $("stationNotes").value=stationNotes[currentStation.code]||"";
     }
    }
@@ -1374,6 +1500,7 @@ auth.onAuthStateChanged(async user=>{
     currentStation=getStationByCode(currentStation.code);
     if(currentStation){
      renderStampRecord(currentStation);
+     renderStationInformation(currentStation);
 
      // Do not overwrite the notes field while the user is typing.
      if(document.activeElement!==$("stationNotes")){
