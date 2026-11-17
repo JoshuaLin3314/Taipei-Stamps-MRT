@@ -139,8 +139,35 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .notes-help{color:var(--muted);font-size:11px;line-height:1.5;margin:7px 0 0}
 .notes-save-status{font-size:11px;color:var(--muted);margin-top:8px;min-height:16px}
 
-/* Editable MRT route guide */
+/* Separate editable MRT route guides */
 .guide-description{color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 14px}
+.guide-line-selectors{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:9px;
+ margin:16px 0;
+}
+.guide-line-button{
+ display:flex;
+ align-items:center;
+ justify-content:flex-start;
+ gap:9px;
+ padding:13px 10px;
+ min-width:0;
+ text-align:left;
+ font-size:13px;
+}
+.guide-line-button.active{
+ background:#eaf1ed;
+ border-color:#8eaa9b;
+ color:var(--ink);
+}
+.guide-line-dot{width:13px;height:13px;border-radius:50%;flex:none}
+.guide-current-title{
+ font-size:17px;
+ font-weight:800;
+ margin:18px 0 8px;
+}
 .guide-editor{
  display:block;
  width:100%;
@@ -217,6 +244,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
  .section{display:inline-block;width:calc(50% - 8px);vertical-align:top;margin:8px 3px}
  .section h2{min-height:54px}
  .diagram-line-selectors{grid-template-columns:repeat(6,minmax(0,1fr))}
+ .guide-line-selectors{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media(max-width:420px){
  .map-top{align-items:flex-start}
@@ -227,6 +255,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
  .stamp-record-heading{align-items:flex-start;flex-direction:column}
  .station-info-grid{grid-template-columns:1fr}
  .guide-actions{grid-template-columns:1fr}
+ .guide-line-button{font-size:12px;padding:11px 8px}
 }
 </style>
 </head>
@@ -304,32 +333,29 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 <div id="guideScreen" class="guide-screen">
  <section class="guide-card">
-  <div class="map-top"><h2>📄 MRT Route Guide</h2><button class="back-button" id="backGuideBtn">← Back to Main Tracker</button></div>
-  <p class="guide-description">Use this space to write your MRT route research, station information, directions, and reminders. Your notes can be edited whenever you like.</p>
+  <div class="map-top"><h2>📝 MRT Route Guides</h2><button class="back-button" id="backGuideBtn">← Back to Main Tracker</button></div>
+  <p class="guide-description">Choose one of the six MRT lines below. Each line has its own independent guide, so your notes stay separate.</p>
 
-  <label class="notes-label" for="guideText">📝 My MRT Route Guide</label>
+  <div id="guideLineSelectors" class="guide-line-selectors"></div>
+
+  <div class="guide-current-title" id="guideCurrentTitle">Wenhu Line Guide</div>
+
+  <label class="notes-label" for="guideText">📝 My Guide Notes</label>
   <textarea
    id="guideText"
    class="guide-editor"
-   placeholder="Start writing your Taipei MRT route guide here...
-
-For example:
-• Wenhu Line
-• Station order
-• Transfer stations
-• Branch lines
-• Important travel reminders"
+   placeholder="Start writing your route research, station information, directions, transfer details, and reminders for this line..."
    maxlength="50000"
-   aria-label="Editable MRT route guide"
+   aria-label="Editable MRT line guide"
   ></textarea>
 
   <div class="guide-actions">
-   <button type="button" class="guide-save-button" id="saveGuideTextBtn">💾 Save Guide</button>
-   <button type="button" class="guide-delete-button" id="deleteGuideTextBtn">🗑️ Delete All Text</button>
+   <button type="button" class="guide-save-button" id="saveGuideTextBtn">💾 Save This Guide</button>
+   <button type="button" class="guide-delete-button" id="deleteGuideTextBtn">🗑️ Delete This Guide</button>
    <div class="guide-save-status" id="guideSaveStatus" aria-live="polite">Your guide has not been changed yet.</div>
   </div>
 
-  <p class="guide-help">Your guide saves on this device. When you are signed in with Google, it also syncs to your account so you can access it on another device.</p>
+  <p class="guide-help">Each line is saved separately on this device and synced separately to your Google account when signed in.</p>
  </section>
 </div>
 
@@ -416,7 +442,10 @@ const GUIDE_TEXT_KEY="taipei-mrt-guide-text-v1";
 let sections=JSON.parse(JSON.stringify(original));
 let stationNotes={};
 let stationInformation={};
-let guideText="";
+
+/* Six independent guide documents, indexed by the exact MRT line name. */
+let guideTexts={};
+let selectedGuideLine=0;
 
 try{
  const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -438,11 +467,23 @@ try{
  if(savedInfo&&typeof savedInfo==="object"&&!Array.isArray(savedInfo))stationInformation=savedInfo;
 }catch(e){}
 
+/*
+ * Load the new six-guide format.
+ * If the previous single-guide version exists, preserve its text
+ * by placing it in the Wenhu guide rather than discarding it.
+ */
 try{
- guideText=localStorage.getItem(GUIDE_TEXT_KEY)||"";
+ const savedGuides=JSON.parse(localStorage.getItem(GUIDE_TEXT_KEY));
+ if(savedGuides&&typeof savedGuides==="object"&&!Array.isArray(savedGuides)){
+  guideTexts=savedGuides;
+ }else if(typeof savedGuides==="string"&&savedGuides){
+  guideTexts[original[0].name]=savedGuides;
+ }
 }catch(e){
- console.error("Could not load route guide:",e);
+ console.error("Could not load route guides:",e);
 }
+
+if(!guideTexts||typeof guideTexts!=="object"||Array.isArray(guideTexts))guideTexts={};
 
 let filter="all";
 let selectedDiagramLine=0;
@@ -507,6 +548,42 @@ function allStations(){return sections.flatMap(s=>s.stations);}
 function cleanStationName(name){return name.replace(/\s*\([^)]*\)/g,"").trim();}
 function getStationLine(station){return sections.find(section=>section.stations.includes(station));}
 function getStationByCode(code){return allStations().find(station=>station.code===code);}
+function getGuideLineName(){return sections[selectedGuideLine]?.name||sections[0].name;}
+function getGuideText(){return guideTexts[getGuideLineName()]||"";}
+
+function renderGuideLineSelectors(){
+ const root=$("guideLineSelectors");
+ root.replaceChildren();
+
+ sections.forEach((section,index)=>{
+  const button=document.createElement("button");
+  button.type="button";
+  button.className="guide-line-button"+(index===selectedGuideLine?" active":"");
+  button.setAttribute("aria-pressed",index===selectedGuideLine?"true":"false");
+
+  const dot=document.createElement("span");
+  dot.className="guide-line-dot";
+  dot.style.background=lineColors[section.name]||"#176b50";
+
+  const label=document.createElement("span");
+  label.textContent=shortLineNames[index]+" Line";
+
+  button.append(dot,label);
+  button.addEventListener("click",()=>selectGuideLine(index));
+
+  root.appendChild(button);
+ });
+}
+
+function selectGuideLine(index){
+ if(index<0||index>=sections.length)return;
+
+ selectedGuideLine=index;
+ $("guideText").value=getGuideText();
+ $("guideCurrentTitle").textContent=sections[index].name+" Guide";
+ $("guideSaveStatus").textContent="Showing your "+shortLineNames[index]+" Line guide.";
+ renderGuideLineSelectors();
+}
 
 function renderStationInformation(station){
  const section=getStationLine(station);
@@ -798,25 +875,27 @@ function closeStationDetail(){
 $("backStationBtn").addEventListener("click",closeStationDetail);
 $("backStationBottomBtn").addEventListener("click",closeStationDetail);
 
-/* Editable MRT route guide */
-function openGuide(page,lineName){
+/* Open the six-guide area, selecting the requested line. */
+function openGuide(lineIndex){
  $("mainScreen").classList.add("hidden");
  $("mapScreen").classList.remove("visible");
  $("diagramScreen").classList.remove("visible");
  $("stationDetailScreen").classList.remove("visible");
  $("guideScreen").classList.add("visible");
 
- $("guideText").value=guideText;
- $("guideSaveStatus").textContent="Your guide is ready to edit.";
+ if(Number.isInteger(lineIndex)&&lineIndex>=0&&lineIndex<sections.length){
+  selectGuideLine(lineIndex);
+ }else{
+  selectGuideLine(selectedGuideLine);
+ }
+
  window.scrollTo(0,0);
 }
 
-function saveGuideTextToDevice(){
- guideText=$("guideText").value;
-
+/* Save all six guides locally as one keyed object. */
+function saveGuideTextsToDevice(){
  try{
-  localStorage.setItem(GUIDE_TEXT_KEY,guideText);
-  $("guideSaveStatus").textContent="✓ Saved on this device";
+  localStorage.setItem(GUIDE_TEXT_KEY,JSON.stringify(guideTexts));
   return true;
  }catch(error){
   console.error("Local route guide save error:",error);
@@ -825,7 +904,8 @@ function saveGuideTextToDevice(){
  }
 }
 
-async function saveGuideTextToCloud(version){
+/* Sync all six separate guide fields to the user's Firestore document. */
+async function saveGuideTextsToCloud(version){
  if(!auth.currentUser||!cloudReady||applyingCloud){
   if(version===guideSaveVersion){
    $("guideSaveStatus").textContent="✓ Saved on this device. Sign in to sync across devices.";
@@ -833,16 +913,16 @@ async function saveGuideTextToCloud(version){
   return;
  }
 
- const textToSave=guideText;
+ const guidesToSave={...guideTexts};
 
  try{
   await db.collection("users").doc(auth.currentUser.uid).set({
-   guideText:textToSave,
-   guideTextUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
+   guideTexts:guidesToSave,
+   guideTextsUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
   },{merge:true});
 
   if(version===guideSaveVersion){
-   $("guideSaveStatus").textContent="☁️ Saved and synced to your Google account";
+   $("guideSaveStatus").textContent="☁️ This line's guide has synced to your Google account.";
    $("syncStatus").textContent="☁️ Synced";
   }
  }catch(error){
@@ -854,26 +934,32 @@ async function saveGuideTextToCloud(version){
 }
 
 async function saveGuideText(){
+ const lineName=getGuideLineName();
+
+ guideTexts[lineName]=$("guideText").value;
  guideSaveVersion++;
+
  const version=guideSaveVersion;
 
- if(!saveGuideTextToDevice())return;
+ if(!saveGuideTextsToDevice())return;
 
- await saveGuideTextToCloud(version);
+ $("guideSaveStatus").textContent="✓ "+shortLineNames[selectedGuideLine]+" Line guide saved on this device.";
+
+ await saveGuideTextsToCloud(version);
 }
 
+/* Save the currently selected guide when its Save button is pressed. */
 $("saveGuideTextBtn").addEventListener("click",saveGuideText);
 
+/* Save the currently selected guide locally as the user types. */
 $("guideText").addEventListener("input",()=>{
- guideText=$("guideText").value;
+ const lineName=getGuideLineName();
+
+ guideTexts[lineName]=$("guideText").value;
  guideSaveVersion++;
 
- try{
-  localStorage.setItem(GUIDE_TEXT_KEY,guideText);
-  $("guideSaveStatus").textContent="Changes saved on this device. Tap Save Guide to sync.";
- }catch(error){
-  console.error("Route guide autosave error:",error);
-  $("guideSaveStatus").textContent="Could not save changes on this device.";
+ if(saveGuideTextsToDevice()){
+  $("guideSaveStatus").textContent="Changes saved on this device. Tap Save This Guide to sync.";
  }
 
  if(guideSaveTimer)clearTimeout(guideSaveTimer);
@@ -881,16 +967,20 @@ $("guideText").addEventListener("input",()=>{
  const version=guideSaveVersion;
  guideSaveTimer=setTimeout(async()=>{
   if(version!==guideSaveVersion)return;
-  await saveGuideTextToCloud(version);
+  await saveGuideTextsToCloud(version);
  },1000);
 });
 
+/* Delete only the currently selected line's guide. */
 $("deleteGuideTextBtn").addEventListener("click",async()=>{
- const confirmed=confirm("Delete all text in your MRT Route Guide? This will also delete the synced copy.");
+ const lineName=getGuideLineName();
+ const displayName=shortLineNames[selectedGuideLine];
+
+ const confirmed=confirm("Delete all text in your "+displayName+" Line guide? The other five guides will be kept.");
  if(!confirmed)return;
 
+ guideTexts[lineName]="";
  $("guideText").value="";
- guideText="";
  guideSaveVersion++;
 
  if(guideSaveTimer){
@@ -898,7 +988,12 @@ $("deleteGuideTextBtn").addEventListener("click",async()=>{
   guideSaveTimer=null;
  }
 
- await saveGuideText();
+ if(!saveGuideTextsToDevice())return;
+
+ $("guideSaveStatus").textContent="✓ "+displayName+" Line guide cleared on this device.";
+
+ const version=guideSaveVersion;
+ await saveGuideTextsToCloud(version);
 });
 
 /* Progress statistics */
@@ -916,7 +1011,7 @@ function updateStats(){
  const statsRoot=$("lineStats");
  statsRoot.innerHTML="";
 
- sections.forEach(section=>{
+ sections.forEach((section,index)=>{
   const stations=section.stations;
   const collected=stations.filter(s=>s.collected).length;
   const total=stations.length;
@@ -949,7 +1044,7 @@ function updateStats(){
   route.className="route-link";
   route.type="button";
   route.textContent="📝 Edit Route Guide";
-  route.addEventListener("click",()=>openGuide(null,section.name));
+  route.addEventListener("click",()=>openGuide(index));
 
   const barRow=document.createElement("div");
   barRow.className="line-stat-bar-row";
@@ -1236,7 +1331,8 @@ $("backDiagramBtn").addEventListener("click",showMainScreen);
 $("backGuideBtn").addEventListener("click",showMainScreen);
 
 /* Initial display */
-$("guideText").value=guideText;
+renderGuideLineSelectors();
+selectGuideLine(0);
 updateStats();
 render();
 
@@ -1295,7 +1391,7 @@ auth.onAuthStateChanged(async user=>{
     stations,
     notes:stationNotes,
     stationInformation:stationInformation,
-    guideText:guideText,
+    guideTexts:guideTexts,
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
    });
   }else{
@@ -1303,6 +1399,7 @@ auth.onAuthStateChanged(async user=>{
    const saved=cloudData.stations||{};
    const savedNotes=cloudData.notes||{};
    const savedInfo=cloudData.stationInformation||{};
+   const savedGuides=cloudData.guideTexts;
 
    applyingCloud=true;
 
@@ -1314,19 +1411,24 @@ auth.onAuthStateChanged(async user=>{
    stationInformation={...stationInformation,...savedInfo};
 
    /*
-    * Preserve locally written guide text if the cloud document
-    * does not have a guideText field yet.
+    * Load the six separate guides from the cloud.
+    * If this is an older account with only guideText,
+    * preserve that text in the Wenhu guide.
     */
-   if(typeof cloudData.guideText==="string"){
-    guideText=cloudData.guideText;
+   if(savedGuides&&typeof savedGuides==="object"&&!Array.isArray(savedGuides)){
+    guideTexts={...guideTexts,...savedGuides};
+   }else if(typeof cloudData.guideText==="string"&&cloudData.guideText){
+    if(!guideTexts[original[0].name]){
+     guideTexts[original[0].name]=cloudData.guideText;
+    }
    }
 
    localStorage.setItem(STORAGE_KEY,JSON.stringify(allStations().map(s=>({code:s.code,collected:s.collected}))));
    localStorage.setItem(NOTES_STORAGE_KEY,JSON.stringify(stationNotes));
    localStorage.setItem(INFO_STORAGE_KEY,JSON.stringify(stationInformation));
-   localStorage.setItem(GUIDE_TEXT_KEY,guideText);
+   localStorage.setItem(GUIDE_TEXT_KEY,JSON.stringify(guideTexts));
 
-   $("guideText").value=guideText;
+   $("guideText").value=getGuideText();
 
    updateStats();
    render();
@@ -1344,14 +1446,13 @@ auth.onAuthStateChanged(async user=>{
    applyingCloud=false;
 
    /*
-    * If this account predates the route guide feature,
-    * add the locally saved guide text without replacing
-    * the other cloud data.
+    * Add the new guideTexts object to older cloud accounts
+    * without deleting any of their existing information.
     */
-   if(typeof cloudData.guideText!=="string"&&guideText){
+   if(!savedGuides||typeof savedGuides!=="object"||Array.isArray(savedGuides)){
     await ref.set({
-     guideText:guideText,
-     guideTextUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
+     guideTexts:guideTexts,
+     guideTextsUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
    }
   }
@@ -1366,6 +1467,7 @@ auth.onAuthStateChanged(async user=>{
    const saved=cloudData.stations||{};
    const savedNotes=cloudData.notes||{};
    const savedInfo=cloudData.stationInformation||{};
+   const savedGuides=cloudData.guideTexts||{};
 
    applyingCloud=true;
 
@@ -1381,17 +1483,26 @@ auth.onAuthStateChanged(async user=>{
    localStorage.setItem(INFO_STORAGE_KEY,JSON.stringify(stationInformation));
 
    /*
-    * Only replace the visible guide when the user is not
-    * actively typing in it. This avoids interrupting editing.
+    * Merge cloud guides without allowing a cloud update
+    * to interrupt typing in the currently open guide.
     */
-   if(typeof cloudData.guideText==="string"&&document.activeElement!==$("guideText")){
-    guideText=cloudData.guideText;
-    $("guideText").value=guideText;
+   if(savedGuides&&typeof savedGuides==="object"&&!Array.isArray(savedGuides)){
+    const currentlyEditingGuide=document.activeElement===$("guideText");
+    const currentLineName=getGuideLineName();
+    const currentDraft=$("guideText").value;
+
+    guideTexts={...guideTexts,...savedGuides};
+
+    if(!currentlyEditingGuide){
+     $("guideText").value=getGuideText();
+    }else{
+     guideTexts[currentLineName]=currentDraft;
+    }
 
     try{
-     localStorage.setItem(GUIDE_TEXT_KEY,guideText);
+     localStorage.setItem(GUIDE_TEXT_KEY,JSON.stringify(guideTexts));
     }catch(error){
-     console.error("Could not cache cloud guide text:",error);
+     console.error("Could not cache cloud route guides:",error);
     }
    }
 
