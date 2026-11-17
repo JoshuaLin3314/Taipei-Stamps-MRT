@@ -139,13 +139,51 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .notes-help{color:var(--muted);font-size:11px;line-height:1.5;margin:7px 0 0}
 .notes-save-status{font-size:11px;color:var(--muted);margin-top:8px;min-height:16px}
 
-/* PDF route guide */
+/* Editable MRT route guide */
 .guide-description{color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 14px}
-.guide-frame-wrap{width:100%;min-height:420px;border:1px solid var(--line);border-radius:12px;overflow:auto;background:#e9ece9;padding:8px}
-#guideCanvas{display:block;width:100%;height:auto;margin:0 auto;background:white;border-radius:4px;box-shadow:0 2px 8px #0002}
-.guide-fallback{display:block;text-align:center;color:var(--green);font-weight:700;font-size:13px;margin-top:14px;text-decoration:none}
-.guide-fallback:hover{text-decoration:underline}
-.guide-page-label{font-size:12px;color:var(--muted);text-align:center;margin:0 0 10px}
+.guide-editor{
+ display:block;
+ width:100%;
+ min-height:420px;
+ resize:vertical;
+ border:1px solid var(--line);
+ border-radius:14px;
+ padding:16px;
+ background:#fff;
+ color:var(--ink);
+ font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.guide-editor:focus{
+ outline:2px solid #a8cdb9;
+ border-color:var(--green);
+}
+.guide-editor::placeholder{color:#89958e}
+.guide-actions{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:9px;
+ margin-top:12px;
+}
+.guide-save-button,.guide-delete-button{
+ width:100%;
+ padding:14px;
+ font-weight:750;
+}
+.guide-save-button{background:var(--green);color:white;border:0}
+.guide-delete-button{background:#f1f4f1;color:#713d35;border:1px solid #e6d7d3}
+.guide-save-status{
+ grid-column:1/-1;
+ min-height:18px;
+ color:var(--muted);
+ font-size:12px;
+ text-align:center;
+}
+.guide-help{
+ color:var(--muted);
+ font-size:12px;
+ line-height:1.5;
+ margin:12px 0 0;
+}
 
 /* Network diagram */
 .diagram-intro{color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 15px}
@@ -188,6 +226,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
  .station-detail-name{font-size:23px}
  .stamp-record-heading{align-items:flex-start;flex-direction:column}
  .station-info-grid{grid-template-columns:1fr}
+ .guide-actions{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -266,11 +305,31 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <div id="guideScreen" class="guide-screen">
  <section class="guide-card">
   <div class="map-top"><h2>📄 MRT Route Guide</h2><button class="back-button" id="backGuideBtn">← Back to Main Tracker</button></div>
-  <p class="guide-description">Your Taipei MRT route guide. Use the button above to return to your stamp collection.</p>
-  <p class="guide-page-label" id="guidePageLabel">Route guide</p>
-  <div class="guide-frame-wrap"><canvas id="guideCanvas"></canvas></div>
-  <a id="openPdfSeparately" class="guide-fallback" href="MRT%20Taipei%20Station.pdf" target="_blank" rel="noopener">Open PDF separately ↗</a>
-  <div class="map-note">If the PDF preview does not load, use “Open PDF separately” above.</div>
+  <p class="guide-description">Use this space to write your MRT route research, station information, directions, and reminders. Your notes can be edited whenever you like.</p>
+
+  <label class="notes-label" for="guideText">📝 My MRT Route Guide</label>
+  <textarea
+   id="guideText"
+   class="guide-editor"
+   placeholder="Start writing your Taipei MRT route guide here...
+
+For example:
+• Wenhu Line
+• Station order
+• Transfer stations
+• Branch lines
+• Important travel reminders"
+   maxlength="50000"
+   aria-label="Editable MRT route guide"
+  ></textarea>
+
+  <div class="guide-actions">
+   <button type="button" class="guide-save-button" id="saveGuideTextBtn">💾 Save Guide</button>
+   <button type="button" class="guide-delete-button" id="deleteGuideTextBtn">🗑️ Delete All Text</button>
+   <div class="guide-save-status" id="guideSaveStatus" aria-live="polite">Your guide has not been changed yet.</div>
+  </div>
+
+  <p class="guide-help">Your guide saves on this device. When you are signed in with Google, it also syncs to your account so you can access it on another device.</p>
  </section>
 </div>
 
@@ -304,7 +363,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <script>
 const firebaseConfig = {
@@ -353,10 +411,12 @@ if(redLine){
 const STORAGE_KEY="taipei-mrt-stamps-v1";
 const NOTES_STORAGE_KEY="taipei-mrt-station-notes-v1";
 const INFO_STORAGE_KEY="taipei-mrt-station-information-v1";
+const GUIDE_TEXT_KEY="taipei-mrt-guide-text-v1";
 
 let sections=JSON.parse(JSON.stringify(original));
 let stationNotes={};
 let stationInformation={};
+let guideText="";
 
 try{
  const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -378,12 +438,20 @@ try{
  if(savedInfo&&typeof savedInfo==="object"&&!Array.isArray(savedInfo))stationInformation=savedInfo;
 }catch(e){}
 
+try{
+ guideText=localStorage.getItem(GUIDE_TEXT_KEY)||"";
+}catch(e){
+ console.error("Could not load route guide:",e);
+}
+
 let filter="all";
 let selectedDiagramLine=0;
 let currentStation=null;
 let notesSaveTimer=null;
 let notesSaveVersion=0;
 let infoSaveVersion=0;
+let guideSaveTimer=null;
+let guideSaveVersion=0;
 
 const $=id=>document.getElementById(id);
 
@@ -599,9 +667,6 @@ async function saveStationInfoEditor(station){
   return;
  }
 
- const status=$("stationInfoSaveStatus");
- if(status)status.textContent="✓ Saved on this device";
-
  renderStationInformation(station);
  const newStatus=$("stationInformation").querySelector(".station-info-note");
  if(newStatus)newStatus.textContent="✓ Your station information has been saved on this device.";
@@ -658,7 +723,7 @@ function renderStampRecord(station){
  };
 }
 
-/* Personal notes */
+/* Personal station notes */
 function renderStationNotes(station){
  const textarea=$("stationNotes");
  const status=$("notesSaveStatus");
@@ -700,6 +765,7 @@ async function saveNotesToCloud(version){
  }
 }
 
+/* Open a station's detail page */
 function openStationDetail(station){
  const section=getStationLine(station);
  if(!section)return;
@@ -728,76 +794,114 @@ function closeStationDetail(){
  currentStation=null;
  window.scrollTo(0,0);
 }
+
 $("backStationBtn").addEventListener("click",closeStationDetail);
 $("backStationBottomBtn").addEventListener("click",closeStationDetail);
 
-/* PDF route guide */
-const routePages={
- "Wenhu Line (Brown Line - BR)":1,
- "Tamsui-Xinyi Line (Red Line - R)":2,
- "Bannan Line (Blue Line - BL)":5,
- "Songshan-Xindian Line (Green Line - G)":3,
- "Zhonghe-Xinlu Line (Orange Line - O)":4,
- "Circular Line (Yellow Line - Y)":6
-};
-
-pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-let currentPdf=null;
-let currentRenderTask=null;
-let guideRequest=0;
-
-async function openGuide(page,lineName){
+/* Editable MRT route guide */
+function openGuide(page,lineName){
  $("mainScreen").classList.add("hidden");
  $("mapScreen").classList.remove("visible");
  $("diagramScreen").classList.remove("visible");
  $("stationDetailScreen").classList.remove("visible");
  $("guideScreen").classList.add("visible");
 
- const pageNumber=Number(page);
- const requestNumber=++guideRequest;
- $("guidePageLabel").textContent=(lineName||"MRT")+" — PDF page "+pageNumber+" — Loading…";
- $("openPdfSeparately").href="MRT%20Taipei%20Station.pdf#page="+pageNumber;
+ $("guideText").value=guideText;
+ $("guideSaveStatus").textContent="Your guide is ready to edit.";
+ window.scrollTo(0,0);
+}
 
- const canvas=$("guideCanvas");
- const context=canvas.getContext("2d");
-
- if(currentRenderTask){try{currentRenderTask.cancel();}catch(e){}currentRenderTask=null;}
- canvas.width=0;
- canvas.height=0;
+function saveGuideTextToDevice(){
+ guideText=$("guideText").value;
 
  try{
-  if(!currentPdf)currentPdf=await pdfjsLib.getDocument("MRT%20Taipei%20Station.pdf").promise;
-  if(requestNumber!==guideRequest)return;
-  if(pageNumber<1||pageNumber>currentPdf.numPages)throw new Error("Requested PDF page does not exist.");
-
-  const pdfPage=await currentPdf.getPage(pageNumber);
-  if(requestNumber!==guideRequest)return;
-
-  const wrap=document.querySelector(".guide-frame-wrap");
-  const baseViewport=pdfPage.getViewport({scale:1});
-  const availableWidth=Math.max(250,wrap.clientWidth-16);
-  const scale=availableWidth/baseViewport.width;
-  const viewport=pdfPage.getViewport({scale});
-  const pixelRatio=Math.min(window.devicePixelRatio||1,2);
-
-  canvas.width=Math.floor(viewport.width*pixelRatio);
-  canvas.height=Math.floor(viewport.height*pixelRatio);
-  canvas.style.width=viewport.width+"px";
-  canvas.style.height=viewport.height+"px";
-  context.setTransform(pixelRatio,0,0,pixelRatio,0,0);
-
-  currentRenderTask=pdfPage.render({canvasContext:context,viewport});
-  await currentRenderTask.promise;
-  currentRenderTask=null;
-  if(requestNumber!==guideRequest)return;
-  $("guidePageLabel").textContent=(lineName||"MRT")+" — PDF page "+pageNumber;
+  localStorage.setItem(GUIDE_TEXT_KEY,guideText);
+  $("guideSaveStatus").textContent="✓ Saved on this device";
+  return true;
  }catch(error){
-  if(error&&error.name==="RenderingCancelledException")return;
-  console.error("PDF loading error:",error);
-  if(requestNumber===guideRequest)$("guidePageLabel").textContent="Could not load the PDF. Use the button below to open it.";
+  console.error("Local route guide save error:",error);
+  $("guideSaveStatus").textContent="Could not save on this device.";
+  return false;
  }
 }
 
+async function saveGuideTextToCloud(version){
+ if(!auth.currentUser||!cloudReady||applyingCloud){
+  if(version===guideSaveVersion){
+   $("guideSaveStatus").textContent="✓ Saved on this device. Sign in to sync across devices.";
+  }
+  return;
+ }
+
+ const textToSave=guideText;
+
+ try{
+  await db.collection("users").doc(auth.currentUser.uid).set({
+   guideText:textToSave,
+   guideTextUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true});
+
+  if(version===guideSaveVersion){
+   $("guideSaveStatus").textContent="☁️ Saved and synced to your Google account";
+   $("syncStatus").textContent="☁️ Synced";
+  }
+ }catch(error){
+  console.error("Cloud route guide save error:",error);
+  if(version===guideSaveVersion){
+   $("guideSaveStatus").textContent="Saved on this device; cloud sync failed.";
+  }
+ }
+}
+
+async function saveGuideText(){
+ guideSaveVersion++;
+ const version=guideSaveVersion;
+
+ if(!saveGuideTextToDevice())return;
+
+ await saveGuideTextToCloud(version);
+}
+
+$("saveGuideTextBtn").addEventListener("click",saveGuideText);
+
+$("guideText").addEventListener("input",()=>{
+ guideText=$("guideText").value;
+ guideSaveVersion++;
+
+ try{
+  localStorage.setItem(GUIDE_TEXT_KEY,guideText);
+  $("guideSaveStatus").textContent="Changes saved on this device. Tap Save Guide to sync.";
+ }catch(error){
+  console.error("Route guide autosave error:",error);
+  $("guideSaveStatus").textContent="Could not save changes on this device.";
+ }
+
+ if(guideSaveTimer)clearTimeout(guideSaveTimer);
+
+ const version=guideSaveVersion;
+ guideSaveTimer=setTimeout(async()=>{
+  if(version!==guideSaveVersion)return;
+  await saveGuideTextToCloud(version);
+ },1000);
+});
+
+$("deleteGuideTextBtn").addEventListener("click",async()=>{
+ const confirmed=confirm("Delete all text in your MRT Route Guide? This will also delete the synced copy.");
+ if(!confirmed)return;
+
+ $("guideText").value="";
+ guideText="";
+ guideSaveVersion++;
+
+ if(guideSaveTimer){
+  clearTimeout(guideSaveTimer);
+  guideSaveTimer=null;
+ }
+
+ await saveGuideText();
+});
+
+/* Progress statistics */
 function updateStats(){
  const a=allStations();
  const done=a.filter(s=>s.collected).length;
@@ -820,17 +924,22 @@ function updateStats(){
 
   const item=document.createElement("div");
   item.className="line-stat";
+
   const top=document.createElement("div");
   top.className="line-stat-top";
+
   const name=document.createElement("strong");
   name.textContent=section.name;
+
   const count=document.createElement("span");
   count.className="line-stat-count";
   count.textContent=`${collected}/${total}`;
+
   top.append(name,count);
 
   const track=document.createElement("div");
   track.className="line-stat-track";
+
   const fill=document.createElement("div");
   fill.className="line-stat-fill";
   fill.style.width=linePct+"%";
@@ -839,8 +948,8 @@ function updateStats(){
   const route=document.createElement("button");
   route.className="route-link";
   route.type="button";
-  route.textContent="📄 View Route";
-  route.addEventListener("click",()=>openGuide(routePages[section.name],section.name));
+  route.textContent="📝 Edit Route Guide";
+  route.addEventListener("click",()=>openGuide(null,section.name));
 
   const barRow=document.createElement("div");
   barRow.className="line-stat-bar-row";
@@ -853,9 +962,11 @@ function updateStats(){
   item.append(top,barRow,percent);
   statsRoot.appendChild(item);
  });
+
  renderDiagram();
 }
 
+/* Render station checklist */
 function render(){
  const q=$("search").value.trim().toLowerCase();
  const root=$("lines");
@@ -867,10 +978,12 @@ function render(){
    const matchesFilter=filter==="all"||(filter==="done"&&st.collected)||(filter==="missing"&&!st.collected);
    return matches&&matchesFilter;
   });
+
   if(!shown.length)return;
 
   const box=document.createElement("section");
   box.className="section";
+
   const h=document.createElement("h2");
   h.textContent=section.name;
   box.appendChild(h);
@@ -883,6 +996,7 @@ function render(){
    cb.type="checkbox";
    cb.checked=st.collected;
    cb.setAttribute("aria-label",`Collected ${st.code} ${st.name}`);
+
    cb.addEventListener("change",()=>{
     st.collected=cb.checked;
     save();
@@ -892,6 +1006,7 @@ function render(){
 
    const details=document.createElement("div");
    details.className="details";
+
    const code=document.createElement("span");
    code.className="code";
    code.textContent=st.code+" — ";
@@ -907,8 +1022,10 @@ function render(){
    row.append(cb,details);
    box.appendChild(row);
   });
+
   root.appendChild(box);
  });
+
  if(!root.children.length)root.textContent="No matching stations.";
 }
 
@@ -916,24 +1033,34 @@ function render(){
 function renderDiagram(){
  const selector=$("diagramLineSelectors");
  if(!selector)return;
+
  selector.innerHTML="";
 
  sections.forEach((section,index)=>{
   const color=lineColors[section.name]||"#176b50";
+
   const button=document.createElement("button");
   button.className="diagram-line-button"+(index===selectedDiagramLine?" active":"");
+
   const dot=document.createElement("span");
   dot.className="diagram-line-dot";
   dot.style.background=color;
+
   const label=document.createElement("span");
   label.textContent=shortLineNames[index];
+
   button.append(dot,label);
-  button.addEventListener("click",()=>{selectedDiagramLine=index;renderDiagram();});
+  button.addEventListener("click",()=>{
+   selectedDiagramLine=index;
+   renderDiagram();
+  });
+
   selector.appendChild(button);
  });
 
  const section=sections[selectedDiagramLine];
  if(!section)return;
+
  const color=lineColors[section.name]||"#176b50";
  const collected=section.stations.filter(s=>s.collected).length;
  const total=section.stations.length;
@@ -950,8 +1077,10 @@ function renderDiagram(){
  section.stations.forEach((station,index)=>{
   const row=document.createElement("div");
   row.className="diagram-station";
+
   const rail=document.createElement("div");
   rail.className="diagram-rail";
+
   const node=document.createElement("div");
   node.className="diagram-node"+(station.collected?" collected":"");
   node.style.borderColor=color;
@@ -967,7 +1096,9 @@ function renderDiagram(){
 
   const info=document.createElement("div");
   info.className="diagram-station-info";
+
   const stationText=document.createElement("div");
+
   const stationName=document.createElement("button");
   stationName.type="button";
   stationName.className="station-name-button diagram-station-name";
@@ -977,12 +1108,15 @@ function renderDiagram(){
   const stationCode=document.createElement("div");
   stationCode.className="diagram-station-code";
   stationCode.textContent=station.code;
+
   stationText.append(stationName,stationCode);
 
   const status=document.createElement("span");
   status.className="diagram-status"+(station.collected?" collected":"");
   status.textContent=station.collected?"✓ Collected":"Not collected";
+
   if(station.collected)status.style.color=color;
+
   info.append(stationText,status);
   row.append(rail,info);
   root.appendChild(row);
@@ -996,11 +1130,13 @@ let unsubscribeCloud=null;
 
 async function save(){
  const data=allStations().map(s=>({code:s.code,collected:s.collected}));
+
  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
  localStorage.setItem(NOTES_STORAGE_KEY,JSON.stringify(stationNotes));
  localStorage.setItem(INFO_STORAGE_KEY,JSON.stringify(stationInformation));
 
  if(!auth.currentUser||!cloudReady||applyingCloud)return;
+
  const stations={};
  data.forEach(s=>{stations[s.code]=s.collected;});
 
@@ -1010,6 +1146,7 @@ async function save(){
    notes:stationNotes,
    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   },{merge:true});
+
   $("syncStatus").textContent="☁️ Synced";
  }catch(error){
   $("syncStatus").textContent="Sync error: "+error.code+" — "+error.message;
@@ -1018,6 +1155,7 @@ async function save(){
 
 /* Search and filters */
 $("search").addEventListener("input",render);
+
 [["allBtn","all"],["missingBtn","missing"],["doneBtn","done"]].forEach(([id,val])=>{
  $(id).addEventListener("click",()=>{
   filter=val;
@@ -1034,6 +1172,7 @@ $("resetBtn").addEventListener("click",()=>{
   save();
   updateStats();
   render();
+
   if(currentStation){
    currentStation=getStationByCode(currentStation.code);
    if(currentStation)renderStampRecord(currentStation);
@@ -1041,27 +1180,29 @@ $("resetBtn").addEventListener("click",()=>{
  }
 });
 
-/* Export */
+/* Export checklist */
 $("exportBtn").addEventListener("click",()=>{
  const lines=["MRT STAMP COLLECTION",""];
+
  sections.forEach(s=>{
   lines.push(s.name);
   s.stations.forEach(st=>lines.push((st.collected?"✓":"◦")+" "+st.code+" - "+st.name));
   lines.push("");
  });
+
  const blob=new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"});
  const url=URL.createObjectURL(blob);
  const a=document.createElement("a");
+
  a.href=url;
  a.download="Taipei-MRT-stamp-checklist.txt";
  a.click();
+
  URL.revokeObjectURL(url);
 });
 
 /* Screen navigation */
 function showMainScreen(){
- guideRequest++;
- if(currentRenderTask){try{currentRenderTask.cancel();}catch(e){}currentRenderTask=null;}
  $("mapScreen").classList.remove("visible");
  $("diagramScreen").classList.remove("visible");
  $("guideScreen").classList.remove("visible");
@@ -1078,6 +1219,7 @@ $("openMapBtn").addEventListener("click",()=>{
  $("mapScreen").classList.add("visible");
  window.scrollTo(0,0);
 });
+
 $("backBtn").addEventListener("click",showMainScreen);
 
 $("openDiagramBtn").addEventListener("click",()=>{
@@ -1089,10 +1231,12 @@ $("openDiagramBtn").addEventListener("click",()=>{
  renderDiagram();
  window.scrollTo(0,0);
 });
+
 $("backDiagramBtn").addEventListener("click",showMainScreen);
 $("backGuideBtn").addEventListener("click",showMainScreen);
 
 /* Initial display */
+$("guideText").value=guideText;
 updateStats();
 render();
 
@@ -1100,11 +1244,14 @@ render();
 $("signInBtn").addEventListener("click",()=>{
  const provider=new firebase.auth.GoogleAuthProvider();
  provider.setCustomParameters({prompt:"select_account"});
+
  $("syncStatus").textContent="Opening Google sign-in…";
  $("signInBtn").disabled=true;
+
  auth.signInWithPopup(provider).catch(error=>{
   $("syncStatus").textContent="Sign-in error: "+error.code+" — "+error.message;
   $("signInBtn").disabled=false;
+
   console.error("Google sign-in error:",error);
   alert(error.code+": "+error.message);
  });
@@ -1113,7 +1260,11 @@ $("signInBtn").addEventListener("click",()=>{
 /* Firebase cloud sync */
 auth.onAuthStateChanged(async user=>{
  cloudReady=false;
- if(unsubscribeCloud){unsubscribeCloud();unsubscribeCloud=null;}
+
+ if(unsubscribeCloud){
+  unsubscribeCloud();
+  unsubscribeCloud=null;
+ }
 
  if(!user){
   $("syncStatus").textContent="Not signed in";
@@ -1125,10 +1276,12 @@ auth.onAuthStateChanged(async user=>{
  $("signInBtn").textContent="Signed in ✓";
  $("signInBtn").disabled=true;
  $("syncStatus").textContent="Connecting to cloud…";
+
  const ref=db.collection("users").doc(user.uid);
 
  try{
   $("syncStatus").textContent="Testing Firestore connection…";
+
   const snapshot=await Promise.race([
    ref.get({source:"server"}),
    new Promise((_,reject)=>setTimeout(()=>reject(new Error("Firestore timed out after 15 seconds")),15000))
@@ -1137,18 +1290,22 @@ auth.onAuthStateChanged(async user=>{
   if(!snapshot.exists){
    const stations={};
    allStations().forEach(s=>{stations[s.code]=s.collected;});
+
    await ref.set({
     stations,
     notes:stationNotes,
     stationInformation:stationInformation,
+    guideText:guideText,
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
    });
   }else{
-   const saved=snapshot.data().stations||{};
-   const savedNotes=snapshot.data().notes||{};
-   const savedInfo=snapshot.data().stationInformation||{};
+   const cloudData=snapshot.data();
+   const saved=cloudData.stations||{};
+   const savedNotes=cloudData.notes||{};
+   const savedInfo=cloudData.stationInformation||{};
 
    applyingCloud=true;
+
    allStations().forEach(s=>{
     if(typeof saved[s.code]==="boolean")s.collected=saved[s.code];
    });
@@ -1156,22 +1313,47 @@ auth.onAuthStateChanged(async user=>{
    stationNotes={...stationNotes,...savedNotes};
    stationInformation={...stationInformation,...savedInfo};
 
+   /*
+    * Preserve locally written guide text if the cloud document
+    * does not have a guideText field yet.
+    */
+   if(typeof cloudData.guideText==="string"){
+    guideText=cloudData.guideText;
+   }
+
    localStorage.setItem(STORAGE_KEY,JSON.stringify(allStations().map(s=>({code:s.code,collected:s.collected}))));
    localStorage.setItem(NOTES_STORAGE_KEY,JSON.stringify(stationNotes));
    localStorage.setItem(INFO_STORAGE_KEY,JSON.stringify(stationInformation));
+   localStorage.setItem(GUIDE_TEXT_KEY,guideText);
+
+   $("guideText").value=guideText;
 
    updateStats();
    render();
 
    if(currentStation){
     currentStation=getStationByCode(currentStation.code);
+
     if(currentStation){
      renderStampRecord(currentStation);
      renderStationInformation(currentStation);
      $("stationNotes").value=stationNotes[currentStation.code]||"";
     }
    }
+
    applyingCloud=false;
+
+   /*
+    * If this account predates the route guide feature,
+    * add the locally saved guide text without replacing
+    * the other cloud data.
+    */
+   if(typeof cloudData.guideText!=="string"&&guideText){
+    await ref.set({
+     guideText:guideText,
+     guideTextUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+   }
   }
 
   cloudReady=true;
@@ -1179,11 +1361,14 @@ auth.onAuthStateChanged(async user=>{
 
   unsubscribeCloud=ref.onSnapshot(doc=>{
    if(!doc.exists||!cloudReady)return;
-   const saved=doc.data().stations||{};
-   const savedNotes=doc.data().notes||{};
-   const savedInfo=doc.data().stationInformation||{};
+
+   const cloudData=doc.data();
+   const saved=cloudData.stations||{};
+   const savedNotes=cloudData.notes||{};
+   const savedInfo=cloudData.stationInformation||{};
 
    applyingCloud=true;
+
    allStations().forEach(s=>{
     if(typeof saved[s.code]==="boolean")s.collected=saved[s.code];
    });
@@ -1195,14 +1380,31 @@ auth.onAuthStateChanged(async user=>{
    localStorage.setItem(NOTES_STORAGE_KEY,JSON.stringify(stationNotes));
    localStorage.setItem(INFO_STORAGE_KEY,JSON.stringify(stationInformation));
 
+   /*
+    * Only replace the visible guide when the user is not
+    * actively typing in it. This avoids interrupting editing.
+    */
+   if(typeof cloudData.guideText==="string"&&document.activeElement!==$("guideText")){
+    guideText=cloudData.guideText;
+    $("guideText").value=guideText;
+
+    try{
+     localStorage.setItem(GUIDE_TEXT_KEY,guideText);
+    }catch(error){
+     console.error("Could not cache cloud guide text:",error);
+    }
+   }
+
    updateStats();
    render();
 
    if(currentStation){
     currentStation=getStationByCode(currentStation.code);
+
     if(currentStation){
      renderStampRecord(currentStation);
      renderStationInformation(currentStation);
+
      if(document.activeElement!==$("stationNotes")){
       $("stationNotes").value=stationNotes[currentStation.code]||"";
      }
@@ -1211,13 +1413,17 @@ auth.onAuthStateChanged(async user=>{
 
    applyingCloud=false;
    $("syncStatus").textContent="☁️ Synced";
+
   },error=>{
+   applyingCloud=false;
    $("syncStatus").textContent="Sync error: "+error.code+" — "+error.message;
+   console.error("Firestore listener error:",error);
   });
 
  }catch(error){
   applyingCloud=false;
   $("syncStatus").textContent="Sync error: "+error.code+" — "+error.message;
+  console.error("Firebase cloud sync error:",error);
  }
 });
 </script>
