@@ -67,17 +67,77 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .back-button{background:#176b50;color:white;border:0;white-space:nowrap}
 .map-image{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}
 .map-note{color:var(--muted);font-size:13px;line-height:1.5;margin-top:12px}
+
 .section{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:12px 0;overflow:hidden}
 .section h2{font-size:16px;margin:0;padding:15px 14px;border-bottom:1px solid var(--line)}
-.station{display:flex;align-items:flex-start;gap:11px;padding:12px 14px;border-bottom:1px solid #edf1ee;min-height:48px}
+
+/* Station rows and transfer panels */
+.station{
+ display:flex;
+ align-items:flex-start;
+ gap:9px;
+ padding:12px 10px;
+ border-bottom:1px solid #edf1ee;
+ min-height:48px
+}
 .station:last-child{border-bottom:0}
-.station input{width:20px;height:20px;accent-color:var(--green);flex:none;margin:1px 0 0}
+.station>input{
+ width:20px;height:20px;accent-color:var(--green);
+ flex:none;margin:1px 0 0
+}
 .station .details{flex:1;line-height:1.35;min-width:0}
 .code{font-weight:750;font-variant-numeric:tabular-nums}
 .station.done .details{color:#718078}
 .station.done .station-name-button{text-decoration:line-through;color:#718078}
-.station-name-button{display:inline;text-align:left;border:0;background:none;padding:0;color:var(--ink);font:inherit;font-weight:600;border-radius:0;text-decoration:underline;text-decoration-color:#b7c8bd;text-underline-offset:3px;line-height:1.4}
+.station-name-button{
+ display:inline;text-align:left;border:0;background:none;padding:0;
+ color:var(--ink);font:inherit;font-weight:600;border-radius:0;
+ text-decoration:underline;text-decoration-color:#b7c8bd;
+ text-underline-offset:3px;line-height:1.4
+}
 .station-name-button:hover{color:var(--green)}
+
+/* Independent transfer stamp checkboxes */
+.transfer-stamps{
+ flex:none;
+ width:112px;
+ margin-left:auto;
+ padding:8px;
+ border:1px solid var(--line);
+ border-radius:11px;
+ background:#f8faf8
+}
+.transfer-title{
+ font-size:9px;
+ font-weight:800;
+ color:var(--muted);
+ text-transform:uppercase;
+ letter-spacing:.04em;
+ margin-bottom:7px
+}
+.transfer-option{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:4px;
+ margin:6px 0;
+ font-size:10px;
+ font-weight:700
+}
+.transfer-option span{
+ display:flex;
+ align-items:center;
+ gap:5px;
+ min-width:0
+}
+.transfer-dot{
+ width:9px;height:9px;border-radius:50%;flex:none
+}
+.transfer-option input{
+ width:16px;height:16px;margin:0;
+ accent-color:var(--green);flex:none
+}
+
 .footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 8px 34px}
 
 /* Station details */
@@ -142,75 +202,30 @@ button:disabled{opacity:.55;cursor:not-allowed}
 /* Separate editable MRT route guides */
 .guide-description{color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 14px}
 .guide-line-selectors{
- display:grid;
- grid-template-columns:repeat(2,minmax(0,1fr));
- gap:9px;
- margin:16px 0;
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:9px;margin:16px 0
 }
 .guide-line-button{
- display:flex;
- align-items:center;
- justify-content:flex-start;
- gap:9px;
- padding:13px 10px;
- min-width:0;
- text-align:left;
- font-size:13px;
+ display:flex;align-items:center;justify-content:flex-start;
+ gap:9px;padding:13px 10px;min-width:0;text-align:left;font-size:13px
 }
-.guide-line-button.active{
- background:#eaf1ed;
- border-color:#8eaa9b;
- color:var(--ink);
-}
+.guide-line-button.active{background:#eaf1ed;border-color:#8eaa9b;color:var(--ink)}
 .guide-line-dot{width:13px;height:13px;border-radius:50%;flex:none}
-.guide-current-title{
- font-size:17px;
- font-weight:800;
- margin:18px 0 8px;
-}
+.guide-current-title{font-size:17px;font-weight:800;margin:18px 0 8px}
 .guide-editor{
- display:block;
- width:100%;
- min-height:420px;
- resize:vertical;
- border:1px solid var(--line);
- border-radius:14px;
- padding:16px;
- background:#fff;
- color:var(--ink);
- font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+ display:block;width:100%;min-height:420px;resize:vertical;
+ border:1px solid var(--line);border-radius:14px;padding:16px;
+ background:#fff;color:var(--ink);
+ font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
 }
-.guide-editor:focus{
- outline:2px solid #a8cdb9;
- border-color:var(--green);
-}
+.guide-editor:focus{outline:2px solid #a8cdb9;border-color:var(--green)}
 .guide-editor::placeholder{color:#89958e}
-.guide-actions{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:9px;
- margin-top:12px;
-}
-.guide-save-button,.guide-delete-button{
- width:100%;
- padding:14px;
- font-weight:750;
-}
+.guide-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.guide-save-button,.guide-delete-button{width:100%;padding:14px;font-weight:750}
 .guide-save-button{background:var(--green);color:white;border:0}
 .guide-delete-button{background:#f1f4f1;color:#713d35;border:1px solid #e6d7d3}
-.guide-save-status{
- grid-column:1/-1;
- min-height:18px;
- color:var(--muted);
- font-size:12px;
- text-align:center;
-}
-.guide-help{
- color:var(--muted);
- font-size:12px;
- line-height:1.5;
- margin:12px 0 0;
-}
+.guide-save-status{grid-column:1/-1;min-height:18px;color:var(--muted);font-size:12px;text-align:center}
+.guide-help{color:var(--muted);font-size:12px;line-height:1.5;margin:12px 0 0}
 
 /* Network diagram */
 .diagram-intro{color:var(--muted);font-size:13px;line-height:1.5;margin:-5px 0 15px}
@@ -335,26 +350,15 @@ button:disabled{opacity:.55;cursor:not-allowed}
  <section class="guide-card">
   <div class="map-top"><h2>📝 MRT Route Guides</h2><button class="back-button" id="backGuideBtn">← Back to Main Tracker</button></div>
   <p class="guide-description">Choose one of the six MRT lines below. Each line has its own independent guide, so your notes stay separate.</p>
-
   <div id="guideLineSelectors" class="guide-line-selectors"></div>
-
   <div class="guide-current-title" id="guideCurrentTitle">Wenhu Line Guide</div>
-
   <label class="notes-label" for="guideText">📝 My Guide Notes</label>
-  <textarea
-   id="guideText"
-   class="guide-editor"
-   placeholder="Start writing your route research, station information, directions, transfer details, and reminders for this line..."
-   maxlength="50000"
-   aria-label="Editable MRT line guide"
-  ></textarea>
-
+  <textarea id="guideText" class="guide-editor" placeholder="Start writing your route research, station information, directions, transfer details, and reminders for this line..." maxlength="50000" aria-label="Editable MRT line guide"></textarea>
   <div class="guide-actions">
    <button type="button" class="guide-save-button" id="saveGuideTextBtn">💾 Save This Guide</button>
    <button type="button" class="guide-delete-button" id="deleteGuideTextBtn">🗑️ Delete This Guide</button>
    <div class="guide-save-status" id="guideSaveStatus" aria-live="polite">Your guide has not been changed yet.</div>
   </div>
-
   <p class="guide-help">Each line is saved separately on this device and synced separately to your Google account when signed in.</p>
  </section>
 </div>
@@ -438,14 +442,14 @@ const STORAGE_KEY="taipei-mrt-stamps-v1";
 const NOTES_STORAGE_KEY="taipei-mrt-station-notes-v1";
 const INFO_STORAGE_KEY="taipei-mrt-station-information-v1";
 const GUIDE_TEXT_KEY="taipei-mrt-guide-text-v1";
+const TRANSFER_STORAGE_KEY="taipei-mrt-transfer-stamps-v1";
 
 let sections=JSON.parse(JSON.stringify(original));
 let stationNotes={};
 let stationInformation={};
-
-/* Six independent guide documents, indexed by the exact MRT line name. */
 let guideTexts={};
 let selectedGuideLine=0;
+let transferStamps={};
 
 try{
  const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -467,11 +471,6 @@ try{
  if(savedInfo&&typeof savedInfo==="object"&&!Array.isArray(savedInfo))stationInformation=savedInfo;
 }catch(e){}
 
-/*
- * Load the new six-guide format.
- * If the previous single-guide version exists, preserve its text
- * by placing it in the Wenhu guide rather than discarding it.
- */
 try{
  const savedGuides=JSON.parse(localStorage.getItem(GUIDE_TEXT_KEY));
  if(savedGuides&&typeof savedGuides==="object"&&!Array.isArray(savedGuides)){
@@ -484,6 +483,15 @@ try{
 }
 
 if(!guideTexts||typeof guideTexts!=="object"||Array.isArray(guideTexts))guideTexts={};
+
+try{
+ const savedTransfers=JSON.parse(localStorage.getItem(TRANSFER_STORAGE_KEY));
+ if(savedTransfers&&typeof savedTransfers==="object"&&!Array.isArray(savedTransfers)){
+  transferStamps=savedTransfers;
+ }
+}catch(e){
+ console.error("Could not load transfer stamps:",e);
+}
 
 let filter="all";
 let selectedDiagramLine=0;
@@ -505,6 +513,134 @@ const lineColors={
  "Circular Line (Yellow Line - Y)":"#D4B900"
 };
 const shortLineNames=["Brown","Red","Blue","Green","Orange","Yellow"];
+
+const transferLineNames={
+ BR:"Brown",
+ R:"Red",
+ BL:"Blue",
+ G:"Green",
+ O:"Orange",
+ Y:"Yellow"
+};
+
+const transferLineColors={
+ BR:"#C48C31",
+ R:"#D94B4B",
+ BL:"#0077C8",
+ G:"#008B55",
+ O:"#F39A24",
+ Y:"#D4B900"
+};
+
+/*
+ * Parse the explicit connecting station code from the station name.
+ * Each panel has the station's home line and its connected line.
+ * Branch-only annotations are intentionally not treated as transfers.
+ */
+function getTransferLines(station){
+ const match=station.name.match(
+  /\((?:Out-of-station transfer to|Transfer:)\s*([A-Z]{1,2}\d+[A-Z]?)\)/i
+ );
+
+ if(!match)return [];
+
+ const connectedCode=match[1].toUpperCase();
+ const homeMatch=station.code.match(/^[A-Z]+/);
+ const connectedMatch=connectedCode.match(/^[A-Z]+/);
+
+ if(!homeMatch||!connectedMatch)return [];
+
+ const homeLine=homeMatch[0];
+ const connectedLine=connectedMatch[0];
+
+ if(!transferLineNames[homeLine]||!transferLineNames[connectedLine])return [];
+
+ return homeLine===connectedLine?[homeLine]:[homeLine,connectedLine];
+}
+
+function transferStampKey(stationCode,lineCode){
+ return stationCode+"::"+lineCode;
+}
+
+function saveTransferStampsLocally(){
+ try{
+  localStorage.setItem(TRANSFER_STORAGE_KEY,JSON.stringify(transferStamps));
+  return true;
+ }catch(error){
+  console.error("Transfer stamp save error:",error);
+  return false;
+ }
+}
+
+async function saveTransferStampsToCloud(){
+ if(!auth.currentUser||!cloudReady||applyingCloud)return;
+
+ try{
+  await db.collection("users").doc(auth.currentUser.uid).set({
+   transferStamps:transferStamps,
+   transferStampsUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true});
+
+  $("syncStatus").textContent="☁️ Synced";
+ }catch(error){
+  console.error("Cloud transfer stamp save error:",error);
+  $("syncStatus").textContent="Transfer stamps saved locally; cloud sync failed";
+ }
+}
+
+function saveTransferStamps(){
+ if(!saveTransferStampsLocally())return;
+ saveTransferStampsToCloud();
+}
+
+function renderTransferPanel(station){
+ const lines=getTransferLines(station);
+ if(!lines.length)return null;
+
+ const panel=document.createElement("aside");
+ panel.className="transfer-stamps";
+
+ const heading=document.createElement("div");
+ heading.className="transfer-title";
+ heading.textContent="Transfer stamps";
+ panel.appendChild(heading);
+
+ lines.forEach(lineCode=>{
+  const key=transferStampKey(station.code,lineCode);
+
+  const label=document.createElement("label");
+  label.className="transfer-option";
+
+  const name=document.createElement("span");
+
+  const dot=document.createElement("i");
+  dot.className="transfer-dot";
+  dot.style.background=transferLineColors[lineCode];
+
+  const lineName=document.createElement("span");
+  lineName.textContent=transferLineNames[lineCode];
+
+  name.append(dot,lineName);
+
+  const checkbox=document.createElement("input");
+  checkbox.type="checkbox";
+  checkbox.checked=!!transferStamps[key];
+  checkbox.setAttribute(
+   "aria-label",
+   transferLineNames[lineCode]+" transfer stamp at "+station.code
+  );
+
+  checkbox.addEventListener("change",()=>{
+   transferStamps[key]=checkbox.checked;
+   saveTransferStamps();
+  });
+
+  label.append(name,checkbox);
+  panel.appendChild(label);
+ });
+
+ return panel;
+}
 
 const lineServiceInfo={
  "Wenhu Line (Brown Line - BR)":{
@@ -570,7 +706,6 @@ function renderGuideLineSelectors(){
 
   button.append(dot,label);
   button.addEventListener("click",()=>selectGuideLine(index));
-
   root.appendChild(button);
  });
 }
@@ -723,7 +858,6 @@ function renderStationInfoEditor(station){
  root.appendChild(card);
 }
 
-/* Save only the station being edited. */
 async function saveStationInfoEditor(station){
  const updated={};
 
@@ -751,7 +885,6 @@ async function saveStationInfoEditor(station){
  await saveStationInformationToCloud(station.code,updated);
 }
 
-/* Update one Firestore station field instead of replacing the entire map. */
 async function saveStationInformationToCloud(code,values){
  if(!auth.currentUser||!cloudReady||applyingCloud)return;
 
@@ -773,7 +906,6 @@ async function saveStationInformationToCloud(code,values){
  }
 }
 
-/* Collection status in station detail */
 function renderStampRecord(station){
  const status=$("detailStampStatus");
  const statusText=$("detailStampStatusText");
@@ -800,7 +932,6 @@ function renderStampRecord(station){
  };
 }
 
-/* Personal station notes */
 function renderStationNotes(station){
  const textarea=$("stationNotes");
  const status=$("notesSaveStatus");
@@ -842,7 +973,6 @@ async function saveNotesToCloud(version){
  }
 }
 
-/* Open a station's detail page */
 function openStationDetail(station){
  const section=getStationLine(station);
  if(!section)return;
@@ -875,7 +1005,6 @@ function closeStationDetail(){
 $("backStationBtn").addEventListener("click",closeStationDetail);
 $("backStationBottomBtn").addEventListener("click",closeStationDetail);
 
-/* Open the six-guide area, selecting the requested line. */
 function openGuide(lineIndex){
  $("mainScreen").classList.add("hidden");
  $("mapScreen").classList.remove("visible");
@@ -892,7 +1021,6 @@ function openGuide(lineIndex){
  window.scrollTo(0,0);
 }
 
-/* Save all six guides locally as one keyed object. */
 function saveGuideTextsToDevice(){
  try{
   localStorage.setItem(GUIDE_TEXT_KEY,JSON.stringify(guideTexts));
@@ -904,7 +1032,6 @@ function saveGuideTextsToDevice(){
  }
 }
 
-/* Sync all six separate guide fields to the user's Firestore document. */
 async function saveGuideTextsToCloud(version){
  if(!auth.currentUser||!cloudReady||applyingCloud){
   if(version===guideSaveVersion){
@@ -935,26 +1062,20 @@ async function saveGuideTextsToCloud(version){
 
 async function saveGuideText(){
  const lineName=getGuideLineName();
-
  guideTexts[lineName]=$("guideText").value;
  guideSaveVersion++;
-
  const version=guideSaveVersion;
 
  if(!saveGuideTextsToDevice())return;
 
  $("guideSaveStatus").textContent="✓ "+shortLineNames[selectedGuideLine]+" Line guide saved on this device.";
-
  await saveGuideTextsToCloud(version);
 }
 
-/* Save the currently selected guide when its Save button is pressed. */
 $("saveGuideTextBtn").addEventListener("click",saveGuideText);
 
-/* Save the currently selected guide locally as the user types. */
 $("guideText").addEventListener("input",()=>{
  const lineName=getGuideLineName();
-
  guideTexts[lineName]=$("guideText").value;
  guideSaveVersion++;
 
@@ -963,15 +1084,14 @@ $("guideText").addEventListener("input",()=>{
  }
 
  if(guideSaveTimer)clearTimeout(guideSaveTimer);
-
  const version=guideSaveVersion;
+
  guideSaveTimer=setTimeout(async()=>{
   if(version!==guideSaveVersion)return;
   await saveGuideTextsToCloud(version);
  },1000);
 });
 
-/* Delete only the currently selected line's guide. */
 $("deleteGuideTextBtn").addEventListener("click",async()=>{
  const lineName=getGuideLineName();
  const displayName=shortLineNames[selectedGuideLine];
@@ -991,7 +1111,6 @@ $("deleteGuideTextBtn").addEventListener("click",async()=>{
  if(!saveGuideTextsToDevice())return;
 
  $("guideSaveStatus").textContent="✓ "+displayName+" Line guide cleared on this device.";
-
  const version=guideSaveVersion;
  await saveGuideTextsToCloud(version);
 });
@@ -1061,7 +1180,7 @@ function updateStats(){
  renderDiagram();
 }
 
-/* Render station checklist */
+/* Checklist rendering with transfer panels */
 function render(){
  const q=$("search").value.trim().toLowerCase();
  const root=$("lines");
@@ -1090,7 +1209,7 @@ function render(){
    const cb=document.createElement("input");
    cb.type="checkbox";
    cb.checked=st.collected;
-   cb.setAttribute("aria-label",`Collected ${st.code} ${st.name}`);
+   cb.setAttribute("aria-label",`Collected ${st.code} ${cleanStationName(st.name)}`);
 
    cb.addEventListener("change",()=>{
     st.collected=cb.checked;
@@ -1115,6 +1234,10 @@ function render(){
 
    details.append(code,nameButton);
    row.append(cb,details);
+
+   const transferPanel=renderTransferPanel(st);
+   if(transferPanel)row.appendChild(transferPanel);
+
    box.appendChild(row);
   });
 
@@ -1229,6 +1352,7 @@ async function save(){
  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
  localStorage.setItem(NOTES_STORAGE_KEY,JSON.stringify(stationNotes));
  localStorage.setItem(INFO_STORAGE_KEY,JSON.stringify(stationInformation));
+ saveTransferStampsLocally();
 
  if(!auth.currentUser||!cloudReady||applyingCloud)return;
 
@@ -1239,6 +1363,7 @@ async function save(){
   await db.collection("users").doc(auth.currentUser.uid).set({
    stations,
    notes:stationNotes,
+   transferStamps:transferStamps,
    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   },{merge:true});
 
@@ -1260,10 +1385,15 @@ $("search").addEventListener("input",render);
  });
 });
 
-/* Reset checkmarks only; personal notes and station information are preserved */
+/* Reset regular station checkmarks only; transfer stamps remain intact */
 $("resetBtn").addEventListener("click",()=>{
- if(confirm("Reset every station to the checkmarks from your original list? Your personal notes and station information will be kept.")){
+ if(confirm("Reset every station to the checkmarks from your original list? Your personal notes, station information, and transfer stamps will be kept.")){
   sections=JSON.parse(JSON.stringify(original));
+
+  const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
+  const map=new Map(saved.map(x=>[x.code,!!x.collected]));
+
+  /* Reset deliberately to the original collected values. */
   save();
   updateStats();
   render();
@@ -1283,6 +1413,23 @@ $("exportBtn").addEventListener("click",()=>{
   lines.push(s.name);
   s.stations.forEach(st=>lines.push((st.collected?"✓":"◦")+" "+st.code+" - "+st.name));
   lines.push("");
+ });
+
+ lines.push("TRANSFER STAMPS");
+ lines.push("");
+
+ sections.forEach(section=>{
+  section.stations.forEach(st=>{
+   const transferLines=getTransferLines(st);
+   if(!transferLines.length)return;
+
+   lines.push(st.code+" - "+cleanStationName(st.name));
+
+   transferLines.forEach(line=>{
+    const key=transferStampKey(st.code,line);
+    lines.push("  "+(transferStamps[key]?"✓":"◦")+" "+transferLineNames[line]+" transfer stamp");
+   });
+  });
  });
 
  const blob=new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"});
@@ -1392,6 +1539,7 @@ auth.onAuthStateChanged(async user=>{
     notes:stationNotes,
     stationInformation:stationInformation,
     guideTexts:guideTexts,
+    transferStamps:transferStamps,
     updatedAt:firebase.firestore.FieldValue.serverTimestamp()
    });
   }else{
@@ -1400,6 +1548,7 @@ auth.onAuthStateChanged(async user=>{
    const savedNotes=cloudData.notes||{};
    const savedInfo=cloudData.stationInformation||{};
    const savedGuides=cloudData.guideTexts;
+   const savedTransfers=cloudData.transferStamps||{};
 
    applyingCloud=true;
 
@@ -1409,12 +1558,8 @@ auth.onAuthStateChanged(async user=>{
 
    stationNotes={...stationNotes,...savedNotes};
    stationInformation={...stationInformation,...savedInfo};
+   transferStamps={...transferStamps,...savedTransfers};
 
-   /*
-    * Load the six separate guides from the cloud.
-    * If this is an older account with only guideText,
-    * preserve that text in the Wenhu guide.
-    */
    if(savedGuides&&typeof savedGuides==="object"&&!Array.isArray(savedGuides)){
     guideTexts={...guideTexts,...savedGuides};
    }else if(typeof cloudData.guideText==="string"&&cloudData.guideText){
@@ -1427,6 +1572,7 @@ auth.onAuthStateChanged(async user=>{
    localStorage.setItem(NOTES_STORAGE_KEY,JSON.stringify(stationNotes));
    localStorage.setItem(INFO_STORAGE_KEY,JSON.stringify(stationInformation));
    localStorage.setItem(GUIDE_TEXT_KEY,JSON.stringify(guideTexts));
+   saveTransferStampsLocally();
 
    $("guideText").value=getGuideText();
 
@@ -1445,14 +1591,17 @@ auth.onAuthStateChanged(async user=>{
 
    applyingCloud=false;
 
-   /*
-    * Add the new guideTexts object to older cloud accounts
-    * without deleting any of their existing information.
-    */
    if(!savedGuides||typeof savedGuides!=="object"||Array.isArray(savedGuides)){
     await ref.set({
      guideTexts:guideTexts,
      guideTextsUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+   }
+
+   if(!cloudData.transferStamps){
+    await ref.set({
+     transferStamps:transferStamps,
+     transferStampsUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
    }
   }
@@ -1468,6 +1617,7 @@ auth.onAuthStateChanged(async user=>{
    const savedNotes=cloudData.notes||{};
    const savedInfo=cloudData.stationInformation||{};
    const savedGuides=cloudData.guideTexts||{};
+   const savedTransfers=cloudData.transferStamps||{};
 
    applyingCloud=true;
 
@@ -1477,15 +1627,13 @@ auth.onAuthStateChanged(async user=>{
 
    stationNotes={...stationNotes,...savedNotes};
    stationInformation={...stationInformation,...savedInfo};
+   transferStamps={...transferStamps,...savedTransfers};
 
    localStorage.setItem(STORAGE_KEY,JSON.stringify(allStations().map(s=>({code:s.code,collected:s.collected}))));
    localStorage.setItem(NOTES_STORAGE_KEY,JSON.stringify(stationNotes));
    localStorage.setItem(INFO_STORAGE_KEY,JSON.stringify(stationInformation));
+   saveTransferStampsLocally();
 
-   /*
-    * Merge cloud guides without allowing a cloud update
-    * to interrupt typing in the currently open guide.
-    */
    if(savedGuides&&typeof savedGuides==="object"&&!Array.isArray(savedGuides)){
     const currentlyEditingGuide=document.activeElement===$("guideText");
     const currentLineName=getGuideLineName();
