@@ -1,5 +1,5 @@
 /* Taipei MRT Stamp Tracker offline app shell */
-const CACHE_NAME = "taipei-mrt-shell-v1";
+const CACHE_NAME = "taipei-mrt-shell-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,13 +7,31 @@ const APP_SHELL = [
   "./IMG_3002.jpeg",
   "./IMG_9049.jpeg"
 ];
+const FIREBASE_SCRIPTS = [
+  "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js",
+  "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js",
+  "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"
+];
 
 self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(APP_SHELL);
+    // Cache Firebase's public CDN scripts too. no-cors allows storing
+    // opaque script responses for later offline use.
+    for (const url of FIREBASE_SCRIPTS) {
+      try {
+        const request = new Request(url, {mode:"no-cors"});
+        const response = await fetch(request);
+        if (response && (response.ok || response.type === "opaque")) {
+          await cache.put(request, response);
+        }
+      } catch (error) {
+        console.warn("Could not pre-cache Firebase script:", url, error);
+      }
+    }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", event => {
@@ -29,22 +47,26 @@ self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
+  const isFirebaseScript = FIREBASE_SCRIPTS.includes(url.href);
 
-  event.respondWith(
-    caches.match(request).then(cached => {
-      if (cached) return cached;
-      return fetch(request).then(response => {
-        if (response && response.ok && (request.destination === "script" ||
-            request.destination === "style" || request.destination === "image")) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-        }
-        return response;
-      }).catch(() => {
-        if (request.mode === "navigate") return caches.match("./index.html");
-        throw new Error("This resource is not available offline.");
-      });
-    })
-  );
+  if (url.origin !== self.location.origin && !isFirebaseScript) return;
+
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    try {
+      const response = await fetch(request);
+      if (response && (response.ok || response.type === "opaque")) {
+        await cache.put(request, response.clone());
+      }
+      return response;
+    } catch (error) {
+      if (request.mode === "navigate") {
+        const fallback = await cache.match("./index.html");
+        if (fallback) return fallback;
+      }
+      throw error;
+    }
+  })());
 });
