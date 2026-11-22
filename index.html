@@ -367,6 +367,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
  <button id="allBtn" class="active">All</button>
  <button id="missingBtn">Missing</button>
  <button id="doneBtn">Collected</button>
+ <button id="transferBtn">Transfer stations</button>
+ <button id="azBtn" aria-pressed="false">A–Z</button>
 </div>
 
 <div id="lines"></div>
@@ -559,6 +561,7 @@ try{
 }
 
 let filter="all";
+let alphabeticalSort=false;
 let selectedDiagramLine=0;
 let currentStation=null;
 let notesSaveTimer=null;
@@ -1254,10 +1257,11 @@ function render(){
  sections.forEach(section=>{
   const shown=section.stations.filter(st=>{
    const matches=(st.code+" "+st.name).toLowerCase().includes(q);
-   const matchesFilter=filter==="all"||(filter==="done"&&st.collected)||(filter==="missing"&&!st.collected);
+   const matchesFilter=filter==="all"||(filter==="done"&&st.collected)||(filter==="missing"&&!st.collected)||(filter==="transfer"&&getTransferLines(st).length>0);
    return matches&&matchesFilter;
   });
 
+  if(alphabeticalSort)shown.sort((a,b)=>cleanStationName(a.name).localeCompare(cleanStationName(b.name),undefined,{sensitivity:"base"}));
   if(!shown.length)return;
 
   const box=document.createElement("section");
@@ -1441,13 +1445,21 @@ async function save(){
 /* Search and filters */
 $("search").addEventListener("input",render);
 
-[["allBtn","all"],["missingBtn","missing"],["doneBtn","done"]].forEach(([id,val])=>{
+[["allBtn","all"],["missingBtn","missing"],["doneBtn","done"],["transferBtn","transfer"]].forEach(([id,val])=>{
  $(id).addEventListener("click",()=>{
   filter=val;
-  document.querySelectorAll("#mainScreen .controls button").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll("#allBtn,#missingBtn,#doneBtn,#transferBtn").forEach(b=>b.classList.remove("active"));
   $(id).classList.add("active");
   render();
  });
+});
+
+$("azBtn").addEventListener("click",()=>{
+ alphabeticalSort=!alphabeticalSort;
+ $("azBtn").classList.toggle("active",alphabeticalSort);
+ $("azBtn").setAttribute("aria-pressed",String(alphabeticalSort));
+ $("azBtn").textContent=alphabeticalSort?"A–Z ✓":"A–Z";
+ render();
 });
 
 /* Reset regular station checkmarks only; transfer stamps remain intact */
