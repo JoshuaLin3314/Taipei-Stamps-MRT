@@ -303,7 +303,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 <div class="controls">
  <button id="signInBtn">Sign in with Google</button>
- <span id="syncStatus">Not signed in</span>
+ <span id="syncStatus">Not signed in</span><span id="networkStatus" role="status" aria-live="polite">Checking connection…</span>
 </div>
 
 <div class="controls">
@@ -407,6 +407,15 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
 const db=firebase.firestore();
+
+// Enable Firestore's IndexedDB cache. Writes made offline are queued by
+// Firestore and sent when this device reconnects.
+const firestorePersistenceReady = db.enablePersistence({synchronizeTabs:true})
+ .then(()=>true)
+ .catch(error=>{
+  console.warn("Firestore offline persistence unavailable:",error.code||error);
+  return false;
+ });
 
 const original = [
 {"name":"Wenhu Line (Brown Line - BR)","stations":[
@@ -1476,6 +1485,23 @@ $("openDiagramBtn").addEventListener("click",()=>{
 
 $("backDiagramBtn").addEventListener("click",showMainScreen);
 $("backGuideBtn").addEventListener("click",showMainScreen);
+
+/* Offline app shell caching */
+if ("serviceWorker" in navigator) {
+ window.addEventListener("load",()=>{
+  navigator.serviceWorker.register("./sw.js")
+   .then(()=>console.log("Offline support ready"))
+   .catch(error=>console.warn("Offline support could not be registered:",error));
+ });
+}
+function updateNetworkStatus(){
+ const el=$("networkStatus");
+ if(!el)return;
+ el.textContent=navigator.onLine?"🟢 Online":"📴 Offline — changes save on this device";
+}
+window.addEventListener("online",updateNetworkStatus);
+window.addEventListener("offline",updateNetworkStatus);
+updateNetworkStatus();
 
 /* Initial display */
 renderGuideLineSelectors();
