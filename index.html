@@ -71,14 +71,16 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .section{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:12px 0;overflow:hidden}
 .section h2{font-size:16px;margin:0;padding:15px 14px;border-bottom:1px solid var(--line)}
 
-/* Station rows and transfer panels */
+/* Station rows and transfer panels — compact full-width layout */
 .station{
  display:flex;
  align-items:flex-start;
  gap:9px;
- padding:12px 10px;
+ box-sizing:border-box;
+ width:100%;
+ padding:8px 10px;
  border-bottom:1px solid #edf1ee;
- min-height:48px
+ min-height:42px
 }
 .station:last-child{border-bottom:0}
 .station>input{
