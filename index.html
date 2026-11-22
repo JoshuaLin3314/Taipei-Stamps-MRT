@@ -148,9 +148,27 @@ button:disabled{opacity:.55;cursor:not-allowed}
  width:9px;height:9px;border-radius:50%;flex:none
 }
 .transfer-option input{
+ appearance:none;
+ -webkit-appearance:none;
  width:16px;height:16px;margin:0;
- accent-color:var(--green);flex:none;
- order:-1
+ flex:none;order:-1;position:relative;
+ border:1.5px solid transparent;
+ border-radius:4px;
+ background:linear-gradient(#fff,#fff) padding-box,
+            var(--transfer-gradient) border-box;
+ cursor:pointer;
+}
+.transfer-option input:checked{
+ background:var(--transfer-gradient);
+}
+.transfer-option input:checked::after{
+ content:"✓";
+ position:absolute;inset:-1px;
+ display:grid;place-items:center;
+ color:#fff;font-size:12px;font-weight:900;line-height:1
+}
+.transfer-option input:focus-visible{
+ outline:2px solid var(--ink);outline-offset:2px
 }
 
 /* Restore the original boxed transfer-stamp layout on iPhone-sized screens. */
@@ -692,6 +710,7 @@ function renderTransferPanel(station){
 
   const checkbox=document.createElement("input");
   checkbox.type="checkbox";
+  checkbox.style.setProperty("--transfer-gradient","linear-gradient(135deg,"+lines.map(code=>transferLineColors[code]).join(",")+")");
   checkbox.checked=!!transferStamps[key];
   checkbox.setAttribute(
    "aria-label",
@@ -1299,23 +1318,12 @@ function render(){
    nameButton.className="station-name-button";
    nameButton.textContent=cleanStationName(st.name);
 
-   // Color station labels by their MRT line; transfer stations blend both lines.
+   // Keep transfer-station labels neutral; use the line colors on the stamp boxes.
    const stationTransferLines=getTransferLines(st);
    const homeLineCode=(st.code.match(/^[A-Z]+/)||[])[0];
    const homeLineColor=transferLineColors[homeLineCode]||lineColors[section.name]||"var(--ink)";
-   const labelColor=stationTransferLines.length>1
-    ? "linear-gradient(90deg,"+stationTransferLines.map(code=>transferLineColors[code]).join(",")+")"
-    : homeLineColor;
    [code,nameButton].forEach(label=>{
-    if(stationTransferLines.length>1){
-     label.style.backgroundImage=labelColor;
-     label.style.backgroundClip="text";
-     label.style.webkitBackgroundClip="text";
-     label.style.color="transparent";
-     label.style.webkitTextFillColor="transparent";
-    }else{
-     label.style.color=labelColor;
-    }
+    label.style.color=stationTransferLines.length>1?"var(--ink)":homeLineColor;
    });
    nameButton.setAttribute("aria-label","Open details for "+cleanStationName(st.name));
    nameButton.addEventListener("click",()=>openStationDetail(st));
