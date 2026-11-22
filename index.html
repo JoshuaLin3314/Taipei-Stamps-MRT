@@ -105,41 +105,43 @@ button:disabled{opacity:.55;cursor:not-allowed}
 /* Independent transfer stamp checkboxes */
 .transfer-stamps{
  flex:none;
- width:176px;
- max-width:42vw;
- margin-left:auto;
- padding:7px 8px;
- border:1px solid var(--line);
- border-radius:11px;
- background:#f8faf8;
- display:grid;
- grid-template-columns:repeat(2,minmax(0,1fr));
- column-gap:8px;
- align-items:center
-}
-.transfer-title{
- grid-column:1 / -1;
- font-size:9px;
- font-weight:800;
- color:var(--muted);
- text-transform:uppercase;
- letter-spacing:.04em;
- margin-bottom:5px
-}
-.transfer-option{
  display:flex;
  align-items:center;
- justify-content:space-between;
- gap:3px;
- min-width:0;
- margin:2px 0;
+ justify-content:flex-end;
+ flex-wrap:wrap;
+ gap:5px 10px;
+ width:auto;
+ max-width:55%;
+ margin-left:auto;
+ padding:0;
+ border:0;
+ border-radius:0;
+ background:transparent
+}
+.transfer-title{
+ flex:none;
  font-size:10px;
- font-weight:700
+ font-weight:800;
+ color:var(--muted);
+ margin:0;
+ white-space:nowrap
+}
+.transfer-option{
+ display:inline-flex;
+ flex-direction:row;
+ align-items:center;
+ justify-content:flex-start;
+ gap:4px;
+ min-width:0;
+ margin:0;
+ font-size:10px;
+ font-weight:700;
+ white-space:nowrap
 }
 .transfer-option span{
  display:flex;
  align-items:center;
- gap:5px;
+ gap:4px;
  min-width:0
 }
 .transfer-dot{
@@ -147,7 +149,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
 }
 .transfer-option input{
  width:16px;height:16px;margin:0;
- accent-color:var(--green);flex:none
+ accent-color:var(--green);flex:none;
+ order:-1
 }
 
 .footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 8px 34px}
@@ -624,7 +627,7 @@ function renderTransferPanel(station){
 
  const heading=document.createElement("div");
  heading.className="transfer-title";
- heading.textContent="Transfer stamps";
+ heading.textContent="Transfer station:";
  panel.appendChild(heading);
 
  lines.forEach(lineCode=>{
