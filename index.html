@@ -68,7 +68,10 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .map-image{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}
 .map-note{color:var(--muted);font-size:13px;line-height:1.5;margin-top:12px}
 
-.section{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:12px 0;overflow:hidden}
+/* Main station lists: stack line sections vertically at every screen size. */
+#lines{display:flex;flex-direction:column;align-items:stretch;width:100%;gap:0}
+#lines>.section{display:block;box-sizing:border-box;width:100%;max-width:100%;margin:12px 0;vertical-align:initial}
+.section{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .section h2{font-size:16px;margin:0;padding:15px 14px;border-bottom:1px solid var(--line)}
 
 /* Station rows and transfer panels — compact full-width layout */
