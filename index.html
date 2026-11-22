@@ -1298,6 +1298,25 @@ function render(){
    nameButton.type="button";
    nameButton.className="station-name-button";
    nameButton.textContent=cleanStationName(st.name);
+
+   // Color station labels by their MRT line; transfer stations blend both lines.
+   const stationTransferLines=getTransferLines(st);
+   const homeLineCode=(st.code.match(/^[A-Z]+/)||[])[0];
+   const homeLineColor=transferLineColors[homeLineCode]||lineColors[section.name]||"var(--ink)";
+   const labelColor=stationTransferLines.length>1
+    ? "linear-gradient(90deg,"+stationTransferLines.map(code=>transferLineColors[code]).join(",")+")"
+    : homeLineColor;
+   [code,nameButton].forEach(label=>{
+    if(stationTransferLines.length>1){
+     label.style.backgroundImage=labelColor;
+     label.style.backgroundClip="text";
+     label.style.webkitBackgroundClip="text";
+     label.style.color="transparent";
+     label.style.webkitTextFillColor="transparent";
+    }else{
+     label.style.color=labelColor;
+    }
+   });
    nameButton.setAttribute("aria-label","Open details for "+cleanStationName(st.name));
    nameButton.addEventListener("click",()=>openStationDetail(st));
 
