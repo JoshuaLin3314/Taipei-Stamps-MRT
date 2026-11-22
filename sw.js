@@ -1,5 +1,5 @@
 /* Taipei MRT Stamp Tracker offline app shell */
-const CACHE_NAME = "taipei-mrt-shell-v11";
+const CACHE_NAME = "taipei-mrt-shell-v12";
 const APP_SHELL = [
   "./",
   "./index.html",
