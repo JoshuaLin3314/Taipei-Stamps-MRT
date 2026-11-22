@@ -148,24 +148,10 @@ button:disabled{opacity:.55;cursor:not-allowed}
  width:9px;height:9px;border-radius:50%;flex:none
 }
 .transfer-option input{
- appearance:none;
- -webkit-appearance:none;
  width:16px;height:16px;margin:0;
- flex:none;order:-1;position:relative;
- border:1.5px solid transparent;
- border-radius:4px;
- background:linear-gradient(#fff,#fff) padding-box,
-            var(--transfer-gradient) border-box;
+ flex:none;order:-1;
+ accent-color:var(--green);
  cursor:pointer;
-}
-.transfer-option input:checked{
- background:var(--transfer-gradient);
-}
-.transfer-option input:checked::after{
- content:"✓";
- position:absolute;inset:-1px;
- display:grid;place-items:center;
- color:#fff;font-size:12px;font-weight:900;line-height:1
 }
 .transfer-option input:focus-visible{
  outline:2px solid var(--ink);outline-offset:2px
@@ -179,9 +165,9 @@ button:disabled{opacity:.55;cursor:not-allowed}
   max-width:42vw;
   margin-left:auto;
   padding:7px 8px;
-  border:1px solid var(--line);
+  border:1px solid #d6ded8;
   border-radius:11px;
-  background:#f8faf8;
+  background:var(--transfer-panel-gradient,#f8faf8);
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   column-gap:8px;
@@ -685,6 +671,8 @@ function renderTransferPanel(station){
 
  const panel=document.createElement("aside");
  panel.className="transfer-stamps";
+ const panelTints=lines.map(code=>"color-mix(in srgb, "+transferLineColors[code]+" 18%, white)");
+ panel.style.setProperty("--transfer-panel-gradient","linear-gradient(135deg,"+panelTints.join(",")+")");
 
  const heading=document.createElement("div");
  heading.className="transfer-title";
@@ -710,7 +698,6 @@ function renderTransferPanel(station){
 
   const checkbox=document.createElement("input");
   checkbox.type="checkbox";
-  checkbox.style.setProperty("--transfer-gradient","linear-gradient(135deg,"+lines.map(code=>transferLineColors[code]).join(",")+")");
   checkbox.checked=!!transferStamps[key];
   checkbox.setAttribute(
    "aria-label",
