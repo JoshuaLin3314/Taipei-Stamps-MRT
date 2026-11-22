@@ -1,5 +1,5 @@
 /* Taipei MRT Stamp Tracker offline app shell */
-const CACHE_NAME = "taipei-mrt-shell-v7";
+const CACHE_NAME = "taipei-mrt-shell-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -53,6 +53,23 @@ self.addEventListener("fetch", event => {
 
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
+
+    // Always check the network first for the app document so layout fixes
+    // reach installed devices promptly; use the cached shell only offline.
+    if (request.mode === "navigate" || url.pathname.endsWith("/index.html")) {
+      try {
+        const response = await fetch(request, {cache:"no-store"});
+        if (response && response.ok) {
+          await cache.put(request, response.clone());
+          return response;
+        }
+      } catch (error) {
+        const fallback = await cache.match(request) || await cache.match("./index.html");
+        if (fallback) return fallback;
+        throw error;
+      }
+    }
+
     const cached = await cache.match(request);
     if (cached) return cached;
     try {
