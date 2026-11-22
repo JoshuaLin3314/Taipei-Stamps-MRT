@@ -265,8 +265,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 @media(min-width:650px){
  main{padding:22px}
- /* Show two line sections side by side on wider screens. */
- .section{display:inline-block;width:calc(50% - 8px);vertical-align:top;margin:8px 3px}
+ /* Keep one full-width line section per row on every screen size. */
+ .section{display:block;width:100%;vertical-align:top;margin:12px 0}
  .section h2{min-height:54px}
  .diagram-line-selectors{grid-template-columns:repeat(6,minmax(0,1fr))}
  .guide-line-selectors{grid-template-columns:repeat(3,minmax(0,1fr))}
